@@ -1,3 +1,34 @@
+## 0.0.73
+* Added `licenseUrl` support for iOS DRM.
+* Fixed RTL text direction issue in player controls.
+* Added `renderedSubtitle` in `BetterPlayerController`.
+* Added additional check in `postControllerEvent` to handle scenario where event stream is closed.
+* Updated ExoPlayer version
+* Fixed `bufferingUpdate` event triggered too often.
+* Updated video list example with bufering configuration.
+* Updated video list documentation.
+* Added `setMixWithOthers` method in `BetterPlayerListVideoPlayerController`.
+* Fixed broken link in cover page of documentation.
+* Fixed progress bar issue where position could be set above video duration.
+* Fixed iOS remote notification command issue.
+* Removed duplicated page in example app (by https://github.com/pinguluk)
+* Added support for clear key DRM (by https://github.com/tinusneethling)
+* Refreshed look and feel of the player UI (by https://github.com/creativeblaq)
+* Added `sigmaX` and `sigmaY` parameters in BetterPlayerControlsConfiguration to control blur of cupertino controls (original idea by: https://github.com/YeFei572)
+
+## 0.0.72
+* Updated ExoPlayer version
+
+## 0.0.71
+* Fixed play after seeking issue on iOS.
+* Fixed audio track selection issue on iOS/Android.
+* Fixed issue where speed which couldn't be applied on iOS was saved in player state.
+* Added support for D-pad navigation using a Android TV remote control (by https://github.com/danielz-nenda)
+* Added `BetterPlayerMultipleGestureDetector` to handle problems with gesture detection
+* Expose getter for `eventListeners` in `BetterPlayerController` (by https://github.com/Letalus)
+* Updated documentation
+* Updated dependencies
+
 ## 0.0.70
 * Fixed file data source exception. Right now user will be only warned.
 * Fixed playback speed after seek in iOS.

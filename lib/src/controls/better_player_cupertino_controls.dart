@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 
 // Flutter imports:
 import 'package:better_player/src/configuration/better_player_controls_configuration.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:better_player/src/controls/better_player_multiple_gesture_detector.dart';
 import 'package:flutter/material.dart';
 
 // Project imports:
@@ -63,6 +65,11 @@ class _BetterPlayerCupertinoControlsState
 
   @override
   Widget build(BuildContext context) {
+    return buildLTRDirectionality(_buildMainWidget());
+  }
+
+  ///Builds main widget of the controls.
+  Widget _buildMainWidget() {
     _betterPlayerController = BetterPlayerController.of(context);
 
     if (_latestValue?.hasError == true) {
@@ -79,11 +86,17 @@ class _BetterPlayerCupertinoControlsState
     final orientation = MediaQuery.of(context).orientation;
     final barHeight = orientation == Orientation.portrait
         ? _controlsConfiguration.controlBarHeight
-        : _controlsConfiguration.controlBarHeight + 17;
-    final buttonPadding = orientation == Orientation.portrait ? 16.0 : 24.0;
+        : _controlsConfiguration.controlBarHeight + 10;
+    const buttonPadding = 10.0;
+    final sigmaX = _controlsConfiguration.sigmaX;
+    final sigmaY = _controlsConfiguration.sigmaY;
+
     _wasLoading = isLoading(_latestValue);
     return GestureDetector(
       onTap: () {
+        if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+          BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
+        }
         _hideStuff
             ? cancelAndRestartTimer()
             : setState(() {
@@ -91,20 +104,41 @@ class _BetterPlayerCupertinoControlsState
               });
       },
       onDoubleTap: () {
+        if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+          BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
+        }
         cancelAndRestartTimer();
         _onPlayPause();
+      },
+      onLongPress: () {
+        if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+          BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
+        }
       },
       child: AbsorbPointer(
         absorbing: _hideStuff,
         child: Column(
           children: <Widget>[
-            _buildTopBar(backgroundColor, iconColor, barHeight, buttonPadding),
+            _buildTopBar(
+              backgroundColor,
+              iconColor,
+              barHeight,
+              buttonPadding,
+              sigmaX,
+              sigmaY,
+            ),
             if (_wasLoading)
               Expanded(child: Center(child: _buildLoadingWidget()))
             else
               _buildHitArea(),
             _buildNextVideoWidget(),
-            _buildBottomBar(backgroundColor, iconColor, barHeight),
+            _buildBottomBar(
+              backgroundColor,
+              iconColor,
+              barHeight,
+              sigmaX,
+              sigmaY,
+            ),
           ],
         ),
       ),
@@ -143,6 +177,8 @@ class _BetterPlayerCupertinoControlsState
     Color backgroundColor,
     Color iconColor,
     double barHeight,
+    double sigmaX,
+    double sigmaY,
   ) {
     if (!betterPlayerController!.controlsEnabled) {
       return const SizedBox();
@@ -159,12 +195,14 @@ class _BetterPlayerCupertinoControlsState
           borderRadius: BorderRadius.circular(10.0),
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(
-              sigmaX: 10.0,
-              sigmaY: 10.0,
+              sigmaX: sigmaX,
+              sigmaY: sigmaY,
             ),
             child: Container(
               height: barHeight,
-              color: backgroundColor,
+              decoration: BoxDecoration(
+                color: backgroundColor.withOpacity(0.5),
+              ),
               child: _betterPlayerController!.isLiveStream()
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -228,7 +266,10 @@ class _BetterPlayerCupertinoControlsState
     Color backgroundColor,
     Color iconColor,
     double barHeight,
+    double iconSize,
     double buttonPadding,
+    double sigmaX,
+    double sigmaY,
   ) {
     return GestureDetector(
       onTap: _onExpandCollapse,
@@ -238,20 +279,22 @@ class _BetterPlayerCupertinoControlsState
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10),
+            filter: ui.ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
             child: Container(
               height: barHeight,
-              padding: EdgeInsets.only(
-                left: buttonPadding,
-                right: buttonPadding,
+              padding: EdgeInsets.symmetric(
+                horizontal: buttonPadding,
               ),
-              color: backgroundColor,
+              decoration: BoxDecoration(
+                color: backgroundColor.withOpacity(0.5),
+              ),
               child: Center(
                 child: Icon(
                   _betterPlayerController!.isFullScreen
                       ? _controlsConfiguration.fullscreenDisableIcon
                       : _controlsConfiguration.fullscreenEnableIcon,
                   color: iconColor,
+                  size: iconSize,
                 ),
               ),
             ),
@@ -295,7 +338,9 @@ class _BetterPlayerCupertinoControlsState
     Color backgroundColor,
     Color iconColor,
     double barHeight,
+    double iconSize,
     double buttonPadding,
+    double sigmaX,
   ) {
     return GestureDetector(
       onTap: () {
@@ -307,9 +352,11 @@ class _BetterPlayerCupertinoControlsState
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
           child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10.0),
+            filter: ui.ImageFilter.blur(sigmaX: sigmaX),
             child: Container(
-              color: backgroundColor,
+              decoration: BoxDecoration(
+                color: backgroundColor.withOpacity(0.5),
+              ),
               child: Container(
                 height: barHeight,
                 padding: EdgeInsets.symmetric(
@@ -318,6 +365,7 @@ class _BetterPlayerCupertinoControlsState
                 child: Icon(
                   _controlsConfiguration.overflowMenuIcon,
                   color: iconColor,
+                  size: iconSize,
                 ),
               ),
             ),
@@ -332,7 +380,9 @@ class _BetterPlayerCupertinoControlsState
     Color backgroundColor,
     Color iconColor,
     double barHeight,
+    double iconSize,
     double buttonPadding,
+    double sigmaX,
   ) {
     return GestureDetector(
       onTap: () {
@@ -351,9 +401,11 @@ class _BetterPlayerCupertinoControlsState
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
           child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10.0),
+            filter: ui.ImageFilter.blur(sigmaX: sigmaX),
             child: Container(
-              color: backgroundColor,
+              decoration: BoxDecoration(
+                color: backgroundColor.withOpacity(0.5),
+              ),
               child: Container(
                 height: barHeight,
                 padding: EdgeInsets.symmetric(
@@ -364,6 +416,7 @@ class _BetterPlayerCupertinoControlsState
                       ? _controlsConfiguration.muteIcon
                       : _controlsConfiguration.unMuteIcon,
                   color: iconColor,
+                  size: iconSize,
                 ),
               ),
             ),
@@ -389,6 +442,7 @@ class _BetterPlayerCupertinoControlsState
               ? _controlsConfiguration.pauseIcon
               : _controlsConfiguration.playIcon,
           color: iconColor,
+          size: barHeight * 0.6,
         ),
       ),
     );
@@ -432,10 +486,13 @@ class _BetterPlayerCupertinoControlsState
         height: barHeight,
         color: Colors.transparent,
         margin: const EdgeInsets.only(left: 10.0),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+        ),
         child: Icon(
           _controlsConfiguration.skipBackIcon,
           color: iconColor,
+          size: barHeight * 0.4,
         ),
       ),
     );
@@ -452,6 +509,7 @@ class _BetterPlayerCupertinoControlsState
         child: Icon(
           _controlsConfiguration.skipForwardIcon,
           color: iconColor,
+          size: barHeight * 0.4,
         ),
       ),
     );
@@ -460,13 +518,16 @@ class _BetterPlayerCupertinoControlsState
   Widget _buildTopBar(
     Color backgroundColor,
     Color iconColor,
-    double barHeight,
+    double topBarHeight,
     double buttonPadding,
+    double sigmaX,
+    double sigmaY,
   ) {
     if (!betterPlayerController!.controlsEnabled) {
       return const SizedBox();
     }
-
+    final barHeight = topBarHeight * 0.8;
+    final iconSize = topBarHeight * 0.4;
     return Container(
       height: barHeight,
       margin: EdgeInsets.only(
@@ -478,27 +539,55 @@ class _BetterPlayerCupertinoControlsState
         children: <Widget>[
           if (_controlsConfiguration.enableFullscreen)
             _buildExpandButton(
-                backgroundColor, iconColor, barHeight, buttonPadding)
+              backgroundColor,
+              iconColor,
+              barHeight,
+              iconSize,
+              buttonPadding,
+              sigmaX,
+              sigmaY,
+            )
           else
             const SizedBox(),
+          const SizedBox(
+            width: 4,
+          ),
           if (_controlsConfiguration.enablePip)
             _buildPipButton(
-                backgroundColor, iconColor, barHeight, buttonPadding)
+              backgroundColor,
+              iconColor,
+              barHeight,
+              iconSize,
+              buttonPadding,
+              sigmaX,
+            )
           else
             const SizedBox(),
-          Expanded(child: Container()),
+          const Spacer(),
           if (_controlsConfiguration.enableMute)
-            _buildMuteButton(_controller, backgroundColor, iconColor, barHeight,
-                buttonPadding)
+            _buildMuteButton(
+              _controller,
+              backgroundColor,
+              iconColor,
+              barHeight,
+              iconSize,
+              buttonPadding,
+              sigmaX,
+            )
           else
             const SizedBox(),
+          const SizedBox(
+            width: 4,
+          ),
           if (_controlsConfiguration.enableOverflowMenu)
             _buildMoreButton(
               _controller,
               backgroundColor,
               iconColor,
               barHeight,
+              iconSize,
               buttonPadding,
+              sigmaX,
             )
           else
             const SizedBox(),
@@ -694,7 +783,7 @@ class _BetterPlayerCupertinoControlsState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.warning,
+              CupertinoIcons.exclamationmark_triangle,
               color: _controlsConfiguration.iconsColor,
               size: 42,
             ),
@@ -730,7 +819,7 @@ class _BetterPlayerCupertinoControlsState
   }
 
   Widget _buildPipButton(Color backgroundColor, Color iconColor,
-      double barHeight, double buttonPadding) {
+      double barHeight, double iconSize, double buttonPadding, double sigmaX) {
     return FutureBuilder<bool>(
         future: _betterPlayerController!.isPictureInPictureSupported(),
         builder: (context, snapshot) {
@@ -748,18 +837,21 @@ class _BetterPlayerCupertinoControlsState
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 10),
+                    filter: ui.ImageFilter.blur(sigmaX: sigmaX),
                     child: Container(
                       height: barHeight,
                       padding: EdgeInsets.only(
                         left: buttonPadding,
                         right: buttonPadding,
                       ),
-                      color: backgroundColor,
+                      decoration: BoxDecoration(
+                        color: backgroundColor.withOpacity(0.5),
+                      ),
                       child: Center(
                         child: Icon(
                           _controlsConfiguration.pipMenuIcon,
                           color: iconColor,
+                          size: iconSize,
                         ),
                       ),
                     ),

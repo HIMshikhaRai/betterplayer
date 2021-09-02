@@ -30,12 +30,12 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ControlDispatcher;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.Player.EventListener;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.DummyExoMediaDrm;
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
 import com.google.android.exoplayer2.drm.HttpMediaDrmCallback;
+import com.google.android.exoplayer2.drm.LocalMediaDrmCallback;
 import com.google.android.exoplayer2.drm.UnsupportedDrmException;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -104,13 +105,14 @@ final class BetterPlayer {
     private PlayerNotificationManager playerNotificationManager;
     private Handler refreshHandler;
     private Runnable refreshRunnable;
-    private EventListener exoPlayerEventListener;
+    private ExoPlayer.Listener exoPlayerEventListener;
     private Bitmap bitmap;
     private MediaSessionCompat mediaSession;
     private DrmSessionManager drmSessionManager;
     private WorkManager workManager;
     private HashMap<UUID, Observer<WorkInfo>> workerObserverMap;
     private CustomDefaultLoadControl customDefaultLoadControl;
+    private long lastSendBufferedPosition = 0L;
 
 
     BetterPlayer(
@@ -147,7 +149,7 @@ final class BetterPlayer {
             Context context, String key, String dataSource, String formatHint, Result result,
             Map<String, String> headers, boolean useCache, long maxCacheSize, long maxCacheFileSize,
             long overriddenDuration, String licenseUrl, Map<String, String> drmHeaders,
-            String cacheKey) {
+            String cacheKey, String clearKey) {
         this.key = key;
         isInitialized = false;
 
@@ -189,6 +191,16 @@ final class BetterPlayer {
                                     .build(httpMediaDrmCallback);
                 }
             }
+        } else if (clearKey != null && !clearKey.isEmpty()) {
+            if (Util.SDK_INT < 18) {
+                Log.e(TAG, "Protected content not supported on API levels below 18");
+                drmSessionManager = null;
+            } else {
+                drmSessionManager = new DefaultDrmSessionManager.Builder()
+                        .setUuidAndExoMediaDrmProvider(C.CLEARKEY_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER).
+                                build(new LocalMediaDrmCallback(clearKey.getBytes()));
+            }
+
         } else {
             drmSessionManager = null;
         }
@@ -324,11 +336,10 @@ final class BetterPlayer {
             }
         }
 
-
-        playerNotificationManager = new PlayerNotificationManager(context,
-                playerNotificationChannelName,
+        playerNotificationManager = new PlayerNotificationManager.Builder(context,
                 NOTIFICATION_ID,
-                mediaDescriptionAdapter);
+                playerNotificationChannelName,
+                mediaDescriptionAdapter).build();
         playerNotificationManager.setPlayer(exoPlayer);
         playerNotificationManager.setUseNextAction(false);
         playerNotificationManager.setUsePreviousAction(false);
@@ -362,7 +373,7 @@ final class BetterPlayer {
             refreshHandler.postDelayed(refreshRunnable, 0);
         }
 
-        exoPlayerEventListener = new EventListener() {
+        exoPlayerEventListener = new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
                 mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -455,7 +466,9 @@ final class BetterPlayer {
 
 
     public void disposeRemoteNotifications() {
-        exoPlayer.removeListener(exoPlayerEventListener);
+        if (exoPlayerEventListener != null) {
+            exoPlayer.removeListener(exoPlayerEventListener);
+        }
         if (refreshHandler != null) {
             refreshHandler.removeCallbacksAndMessages(null);
             refreshHandler = null;
@@ -552,33 +565,32 @@ final class BetterPlayer {
         exoPlayer.setVideoSurface(surface);
         setAudioAttributes(exoPlayer, true);
 
-        exoPlayer.addListener(
-                new EventListener() {
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onPlaybackStateChanged(int playbackState) {
 
-                    @Override
-                    public void onPlaybackStateChanged(int playbackState) {
-                        if (playbackState == Player.STATE_BUFFERING) {
-                            sendBufferingUpdate();
-                            Map<String, Object> event = new HashMap<>();
-                            event.put("event", "bufferingStart");
-                            eventSink.success(event);
-                        } else if (playbackState == Player.STATE_READY) {
-                            if (!isInitialized) {
-                                isInitialized = true;
-                                sendInitialized();
-                            }
-
-                            Map<String, Object> event = new HashMap<>();
-                            event.put("event", "bufferingEnd");
-                            eventSink.success(event);
-
-                        } else if (playbackState == Player.STATE_ENDED) {
-                            Map<String, Object> event = new HashMap<>();
-                            event.put("event", "completed");
-                            event.put("key", key);
-                            eventSink.success(event);
-                        }
+                if (playbackState == Player.STATE_BUFFERING) {
+                    sendBufferingUpdate(true);
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("event", "bufferingStart");
+                    eventSink.success(event);
+                } else if (playbackState == Player.STATE_READY) {
+                    if (!isInitialized) {
+                        isInitialized = true;
+                        sendInitialized();
                     }
+
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("event", "bufferingEnd");
+                    eventSink.success(event);
+
+                } else if (playbackState == Player.STATE_ENDED) {
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("event", "completed");
+                    event.put("key", key);
+                    eventSink.success(event);
+                }
+            }
 
                     @Override
                     public void onPlayerError(final ExoPlaybackException error) {
@@ -591,17 +603,21 @@ final class BetterPlayer {
         result.success(reply);
     }
 
-    void sendBufferingUpdate() {
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", "bufferingUpdate");
-        List<? extends Number> range = Arrays.asList(0, exoPlayer.getBufferedPosition());
-        // iOS supports a list of buffered ranges, so here is a list with a single range.
-        event.put("values", Collections.singletonList(range));
-        eventSink.success(event);
+    void sendBufferingUpdate(boolean isFromBufferingStart) {
+        long bufferedPosition = exoPlayer.getBufferedPosition();
+        if (isFromBufferingStart || bufferedPosition != lastSendBufferedPosition) {
+            Map<String, Object> event = new HashMap<>();
+            event.put("event", "bufferingUpdate");
+            List<? extends Number> range = Arrays.asList(0, bufferedPosition);
+            // iOS supports a list of buffered ranges, so here is a list with a single range.
+            event.put("values", Collections.singletonList(range));
+            eventSink.success(event);
+            lastSendBufferedPosition = bufferedPosition;
+        }
     }
 
     private void setAudioAttributes(SimpleExoPlayer exoPlayer, Boolean mixWithOthers) {
-        Player.AudioComponent audioComponent = exoPlayer.getAudioComponent();
+        ExoPlayer.AudioComponent audioComponent = exoPlayer.getAudioComponent();
         if (audioComponent == null) {
             return;
         }
@@ -772,13 +788,18 @@ final class BetterPlayer {
                     }
                     TrackGroupArray trackGroupArray = mappedTrackInfo.getTrackGroups(rendererIndex);
                     boolean hasElementWithoutLabel = false;
+                    boolean hasStrangeAudioTrack = false;
                     for (int groupIndex = 0; groupIndex < trackGroupArray.length; groupIndex++) {
                         TrackGroup group = trackGroupArray.get(groupIndex);
                         for (int groupElementIndex = 0; groupElementIndex < group.length; groupElementIndex++) {
-                            String label = group.getFormat(groupElementIndex).label;
-                            if (label == null) {
+                            Format format = group.getFormat(groupElementIndex);
+
+                            if (format.label == null) {
                                 hasElementWithoutLabel = true;
-                                break;
+                            }
+
+                            if (format.id != null && format.id.equals("1/15")) {
+                                hasStrangeAudioTrack = true;
                             }
                         }
                     }
@@ -787,16 +808,22 @@ final class BetterPlayer {
                         TrackGroup group = trackGroupArray.get(groupIndex);
                         for (int groupElementIndex = 0; groupElementIndex < group.length; groupElementIndex++) {
                             String label = group.getFormat(groupElementIndex).label;
+
                             if (name.equals(label) && index == groupIndex) {
                                 setAudioTrack(rendererIndex, groupIndex, groupElementIndex);
                                 return;
                             }
+
                             ///Fallback option
-                            if (hasElementWithoutLabel && index == groupIndex) {
+                            if (!hasStrangeAudioTrack && hasElementWithoutLabel && index == groupIndex) {
                                 setAudioTrack(rendererIndex, groupIndex, groupElementIndex);
                                 return;
                             }
-
+                            ///Fallback option
+                            if (hasStrangeAudioTrack && name.equals(label)) {
+                                setAudioTrack(rendererIndex, groupIndex, groupElementIndex);
+                                return;
+                            }
                         }
                     }
                 }
