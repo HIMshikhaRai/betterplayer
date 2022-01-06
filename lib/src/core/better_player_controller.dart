@@ -1091,6 +1091,9 @@ class BetterPlayerController {
   ///Handle VideoEvent when remote controls notification / PiP is shown
   void _handleVideoEvent(VideoEvent event) async {
     switch (event.eventType) {
+      case VideoEventType.initialized:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.initialized));
+        break;
       case VideoEventType.play:
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.play));
         break;
@@ -1107,7 +1110,7 @@ class BetterPlayerController {
             BetterPlayerEventType.finished,
             parameters: <String, dynamic>{
               _progressParameter: videoValue?.position,
-              _durationParameter: videoValue?.duration
+              _durationParameter: videoValue?.duration,
             },
           ),
         );
@@ -1123,6 +1126,10 @@ class BetterPlayerController {
         break;
       case VideoEventType.bufferingEnd:
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.bufferingEnd));
+        break;
+
+      case VideoEventType.nerdStat:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.nerdStat));
         break;
       default:
 

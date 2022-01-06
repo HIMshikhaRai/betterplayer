@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -38,6 +39,7 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
@@ -49,6 +51,8 @@ import com.google.android.exoplayer2.drm.UnsupportedDrmException;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
+import com.google.android.exoplayer2.source.LoadEventInfo;
+import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
@@ -67,6 +71,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -142,6 +147,44 @@ final class BetterPlayer {
         workManager = WorkManager.getInstance(context);
         workerObserverMap = new HashMap<>();
 
+        exoPlayer.addAnalyticsListener(new AnalyticsListener() {
+
+            @Override
+            public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("event", "onBandWidthEstimate");
+                event.put("values",bitrateEstimate);
+                event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
+                eventSink.success(event);
+            }
+
+            @Override
+            public void onLoadCompleted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("event", "loadCompleted");
+                event.put("values",mediaLoadData.dataType);
+                eventSink.success(event);
+            }
+
+            @Override
+            public void onLoadStarted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("event", "loadStarted");
+                event.put("values",mediaLoadData.dataType);
+                eventSink.success(event);
+            }
+
+            @Override
+            public void onLoadError(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("event", "loadError");
+                event.put("values",mediaLoadData.dataType);
+                event.put("error",error);
+                eventSink.success(event);
+            }
+
+
+        });
         setupVideoPlayer(eventChannel, textureEntry, result);
     }
 
@@ -379,6 +422,14 @@ final class BetterPlayer {
                 mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
                         .build());
+                Log.d("play_back_state_change",playbackState+"   ");
+                if(playbackState == PlaybackState.STATE_BUFFERING){
+
+                }else if(playbackState == PlaybackState.ACTION_PLAY){
+                    sendEvent("play");
+
+                    Log.d("play_back_state_change",playbackState+"   "+exoPlayer.getVideoFormat().bitrate);
+                }
             }
         };
 
@@ -566,6 +617,7 @@ final class BetterPlayer {
         setAudioAttributes(exoPlayer, true);
 
         exoPlayer.addListener(new Player.Listener() {
+
             @Override
             public void onPlaybackStateChanged(int playbackState) {
 
@@ -573,6 +625,7 @@ final class BetterPlayer {
                     sendBufferingUpdate(true);
                     Map<String, Object> event = new HashMap<>();
                     event.put("event", "bufferingStart");
+                    event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
                     eventSink.success(event);
                 } else if (playbackState == Player.STATE_READY) {
                     if (!isInitialized) {
@@ -582,12 +635,14 @@ final class BetterPlayer {
 
                     Map<String, Object> event = new HashMap<>();
                     event.put("event", "bufferingEnd");
+                    event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
                     eventSink.success(event);
 
                 } else if (playbackState == Player.STATE_ENDED) {
                     Map<String, Object> event = new HashMap<>();
                     event.put("event", "completed");
                     event.put("key", key);
+                    event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
                     eventSink.success(event);
                 }
             }
@@ -611,6 +666,7 @@ final class BetterPlayer {
             List<? extends Number> range = Arrays.asList(0, bufferedPosition);
             // iOS supports a list of buffered ranges, so here is a list with a single range.
             event.put("values", Collections.singletonList(range));
+            event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
             eventSink.success(event);
             lastSendBufferedPosition = bufferedPosition;
         }
@@ -708,6 +764,7 @@ final class BetterPlayer {
                 }
                 event.put("width", width);
                 event.put("height", height);
+                event.put("bitrate",videoFormat.bitrate);
             }
             eventSink.success(event);
         }
@@ -759,6 +816,7 @@ final class BetterPlayer {
     public void onPictureInPictureStatusChanged(boolean inPip) {
         Map<String, Object> event = new HashMap<>();
         event.put("event", inPip ? "pipStart" : "pipStop");
+        event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
         eventSink.success(event);
     }
 
@@ -772,6 +830,7 @@ final class BetterPlayer {
     private void sendEvent(String eventType) {
         Map<String, Object> event = new HashMap<>();
         event.put("event", eventType);
+        event.put("bitrate", exoPlayer.getVideoFormat() == null ? "Hey its null" : exoPlayer.getVideoFormat().bitrate);
         eventSink.success(event);
     }
 
@@ -855,6 +914,7 @@ final class BetterPlayer {
         Map<String, Object> event = new HashMap<>();
         event.put("event", "seek");
         event.put("position", positionMs);
+        event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
         eventSink.success(event);
     }
 

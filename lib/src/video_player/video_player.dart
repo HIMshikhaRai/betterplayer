@@ -42,6 +42,7 @@ class VideoPlayerValue {
     this.speed = 1.0,
     this.errorDescription,
     this.isPip = false,
+    this.bitrate = 0
   });
 
   /// Returns an instance with a `null` [Duration].
@@ -96,6 +97,9 @@ class VideoPlayerValue {
   ///Is in Picture in Picture Mode
   final bool isPip;
 
+  /// bitrate
+  final int bitrate;
+
   /// Indicates whether or not the video has been loaded and is ready to play.
   bool get initialized => duration != null;
 
@@ -131,6 +135,7 @@ class VideoPlayerValue {
     String? errorDescription,
     double? speed,
     bool? isPip,
+    int? bitrate
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -145,6 +150,7 @@ class VideoPlayerValue {
       speed: speed ?? this.speed,
       errorDescription: errorDescription ?? this.errorDescription,
       isPip: isPip ?? this.isPip,
+      bitrate: bitrate ?? this.bitrate
     );
   }
 
@@ -225,40 +231,44 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(
             duration: event.duration,
             size: event.size,
+            bitrate: event.bitrate
           );
           _initializingCompleter.complete(null);
           _applyPlayPause();
           break;
         case VideoEventType.completed:
-          value = value.copyWith(isPlaying: false, position: value.duration);
+          value = value.copyWith(isPlaying: false, position: value.duration, bitrate: event.bitrate);
           _timer?.cancel();
           break;
         case VideoEventType.bufferingUpdate:
-          value = value.copyWith(buffered: event.buffered);
+          value = value.copyWith(buffered: event.buffered, bitrate: event.bitrate);
           break;
         case VideoEventType.bufferingStart:
-          value = value.copyWith(isBuffering: true);
+          value = value.copyWith(isBuffering: true, bitrate: event.bitrate);
           break;
         case VideoEventType.bufferingEnd:
           if (value.isBuffering) {
-            value = value.copyWith(isBuffering: false);
+            value = value.copyWith(isBuffering: false, bitrate: event.bitrate);
           }
           break;
 
         case VideoEventType.play:
+          value = value.copyWith(bitrate: event.bitrate);
           play();
           break;
         case VideoEventType.pause:
+          value = value.copyWith(bitrate: event.bitrate);
           pause();
           break;
         case VideoEventType.seek:
+          value = value.copyWith(bitrate: event.bitrate);
           seekTo(event.position);
           break;
         case VideoEventType.pipStart:
-          value = value.copyWith(isPip: true);
+          value = value.copyWith(isPip: true, bitrate: event.bitrate);
           break;
         case VideoEventType.pipStop:
-          value = value.copyWith(isPip: false);
+          value = value.copyWith(isPip: false, bitrate: event.bitrate);
           break;
         case VideoEventType.unknown:
           break;

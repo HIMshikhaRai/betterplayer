@@ -361,11 +361,13 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             key: key,
             duration: Duration(milliseconds: map['duration'] as int),
             size: size,
+            bitrate: map["bitrate"],
           );
         case 'completed':
           return VideoEvent(
             eventType: VideoEventType.completed,
             key: key,
+            bitrate: map["bitrate"],
           );
         case 'bufferingUpdate':
           final List<dynamic> values = map['values'] as List;
@@ -374,28 +376,33 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             eventType: VideoEventType.bufferingUpdate,
             key: key,
             buffered: values.map<DurationRange>(_toDurationRange).toList(),
+            bitrate: map["bitrate"],
           );
         case 'bufferingStart':
           return VideoEvent(
             eventType: VideoEventType.bufferingStart,
             key: key,
+            bitrate: map["bitrate"],
           );
         case 'bufferingEnd':
           return VideoEvent(
             eventType: VideoEventType.bufferingEnd,
             key: key,
+            bitrate: map["bitrate"],
           );
 
         case 'play':
           return VideoEvent(
             eventType: VideoEventType.play,
             key: key,
+            bitrate: map["bitrate"]
           );
 
         case 'pause':
           return VideoEvent(
             eventType: VideoEventType.pause,
             key: key,
+              bitrate: map["bitrate"]
           );
 
         case 'seek':
@@ -403,24 +410,56 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             eventType: VideoEventType.seek,
             key: key,
             position: Duration(milliseconds: map['position'] as int),
+              bitrate: map["bitrate"]
           );
 
         case 'pipStart':
           return VideoEvent(
             eventType: VideoEventType.pipStart,
             key: key,
+            bitrate: map["bitrate"],
           );
 
         case 'pipStop':
           return VideoEvent(
             eventType: VideoEventType.pipStop,
             key: key,
+            bitrate: map["bitrate"],
           );
+
+        case 'onBandWidthEstimate':
+          dynamic values = map["values"];
+          dynamic abc_test = map["abc_test"];
+
+          print(
+              "******** onBandWidthEstimate ******* ${values}     ${abc_test}");
+          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
+
+        case 'loadCompleted':
+          dynamic values = map["values"];
+          dynamic abc_test = map["abc_test"];
+
+          print("******** loadCompleted ******* ${values}     ${abc_test}");
+          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
+        case 'loadStarted':
+          dynamic values = map["values"];
+          dynamic abc_test = map["abc_test"];
+
+          print("******** loadStarted ******* ${values}     ${abc_test}");
+          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
+        case 'loadError':
+          dynamic values = map["values"];
+          dynamic abc_test = map["abc_test"];
+          dynamic error = map["error"];
+
+          print("********  loadStarted ******* ${values}     ${abc_test}");
+          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
 
         default:
           return VideoEvent(
             eventType: VideoEventType.unknown,
             key: key,
+            bitrate: map["bitrate"],
           );
       }
     });

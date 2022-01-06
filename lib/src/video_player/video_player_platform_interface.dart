@@ -381,6 +381,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.position,
+    this.bitrate,
   });
 
   /// The type of the event.
@@ -408,6 +409,8 @@ class VideoEvent {
 
   ///Seek position
   final Duration? position;
+
+  final dynamic bitrate;
 
   @override
   bool operator ==(Object other) {
@@ -466,6 +469,8 @@ enum VideoEventType {
 
   /// An unknown event has been received.
   unknown,
+
+  nerdStat,
 }
 
 /// Describes a discrete segment of time within a video using a [start] and
