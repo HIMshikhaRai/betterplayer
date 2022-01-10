@@ -17,6 +17,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.Surface;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -64,6 +65,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.ui.DefaultTrackNameProvider;
 import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -147,44 +149,9 @@ final class BetterPlayer {
         workManager = WorkManager.getInstance(context);
         workerObserverMap = new HashMap<>();
 
-        exoPlayer.addAnalyticsListener(new AnalyticsListener() {
+        NerdStatHelper nerdStatHelper = new NerdStatHelper(exoPlayer, new TextView(context), eventSink, exoPlayer.getCurrentTrackSelections(), new DefaultTrackNameProvider(context.getResources()), context);
+        nerdStatHelper.init();
 
-            @Override
-            public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
-                Map<String, Object> event = new HashMap<>();
-                event.put("event", "onBandWidthEstimate");
-                event.put("values",bitrateEstimate);
-                event.put("bitrate", exoPlayer.getVideoFormat() == null ? 0 : exoPlayer.getVideoFormat().bitrate);
-                eventSink.success(event);
-            }
-
-            @Override
-            public void onLoadCompleted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-                Map<String, Object> event = new HashMap<>();
-                event.put("event", "loadCompleted");
-                event.put("values",mediaLoadData.dataType);
-                eventSink.success(event);
-            }
-
-            @Override
-            public void onLoadStarted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-                Map<String, Object> event = new HashMap<>();
-                event.put("event", "loadStarted");
-                event.put("values",mediaLoadData.dataType);
-                eventSink.success(event);
-            }
-
-            @Override
-            public void onLoadError(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
-                Map<String, Object> event = new HashMap<>();
-                event.put("event", "loadError");
-                event.put("values",mediaLoadData.dataType);
-                event.put("error",error);
-                eventSink.success(event);
-            }
-
-
-        });
         setupVideoPlayer(eventChannel, textureEntry, result);
     }
 

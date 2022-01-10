@@ -393,25 +393,22 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
 
         case 'play':
           return VideoEvent(
-            eventType: VideoEventType.play,
-            key: key,
-            bitrate: map["bitrate"]
-          );
+              eventType: VideoEventType.play,
+              key: key,
+              bitrate: map["bitrate"]);
 
         case 'pause':
           return VideoEvent(
-            eventType: VideoEventType.pause,
-            key: key,
-              bitrate: map["bitrate"]
-          );
+              eventType: VideoEventType.pause,
+              key: key,
+              bitrate: map["bitrate"]);
 
         case 'seek':
           return VideoEvent(
-            eventType: VideoEventType.seek,
-            key: key,
-            position: Duration(milliseconds: map['position'] as int),
-              bitrate: map["bitrate"]
-          );
+              eventType: VideoEventType.seek,
+              key: key,
+              position: Duration(milliseconds: map['position'] as int),
+              bitrate: map["bitrate"]);
 
         case 'pipStart':
           return VideoEvent(
@@ -427,33 +424,12 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             bitrate: map["bitrate"],
           );
 
-        case 'onBandWidthEstimate':
+        case 'nerdStat':
           dynamic values = map["values"];
-          dynamic abc_test = map["abc_test"];
-
-          print(
-              "******** onBandWidthEstimate ******* ${values}     ${abc_test}");
-          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
-
-        case 'loadCompleted':
-          dynamic values = map["values"];
-          dynamic abc_test = map["abc_test"];
-
-          print("******** loadCompleted ******* ${values}     ${abc_test}");
-          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
-        case 'loadStarted':
-          dynamic values = map["values"];
-          dynamic abc_test = map["abc_test"];
-
-          print("******** loadStarted ******* ${values}     ${abc_test}");
-          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
-        case 'loadError':
-          dynamic values = map["values"];
-          dynamic abc_test = map["abc_test"];
-          dynamic error = map["error"];
-
-          print("********  loadStarted ******* ${values}     ${abc_test}");
-          return VideoEvent(eventType: VideoEventType.nerdStat, key: key,bitrate: map["bitrate"]);
+          return VideoEvent(
+              eventType: VideoEventType.nerdStat,
+              key: key,
+              nerdStat: values);
 
         default:
           return VideoEvent(

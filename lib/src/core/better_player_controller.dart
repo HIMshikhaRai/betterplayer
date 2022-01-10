@@ -1129,7 +1129,10 @@ class BetterPlayerController {
         break;
 
       case VideoEventType.nerdStat:
-        _postEvent(BetterPlayerEvent(BetterPlayerEventType.nerdStat));
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.nerdStat,
+            parameters: <String, dynamic>{
+              "nerdStat": event.nerdStat,
+            }));
         break;
       default:
 

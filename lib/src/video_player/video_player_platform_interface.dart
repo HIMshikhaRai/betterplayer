@@ -382,6 +382,7 @@ class VideoEvent {
     this.buffered,
     this.position,
     this.bitrate,
+    this.nerdStat
   });
 
   /// The type of the event.
@@ -411,6 +412,8 @@ class VideoEvent {
   final Duration? position;
 
   final dynamic bitrate;
+
+  final dynamic nerdStat;
 
   @override
   bool operator ==(Object other) {

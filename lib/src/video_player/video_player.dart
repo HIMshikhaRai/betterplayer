@@ -42,7 +42,8 @@ class VideoPlayerValue {
     this.speed = 1.0,
     this.errorDescription,
     this.isPip = false,
-    this.bitrate = 0
+    this.bitrate = 0,
+    this.nerdStatValue = ""
   });
 
   /// Returns an instance with a `null` [Duration].
@@ -100,6 +101,9 @@ class VideoPlayerValue {
   /// bitrate
   final int bitrate;
 
+  /// Nerd stats
+  final String nerdStatValue;
+
   /// Indicates whether or not the video has been loaded and is ready to play.
   bool get initialized => duration != null;
 
@@ -135,7 +139,8 @@ class VideoPlayerValue {
     String? errorDescription,
     double? speed,
     bool? isPip,
-    int? bitrate
+    int? bitrate,
+    String? nerdStatValue
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -150,7 +155,8 @@ class VideoPlayerValue {
       speed: speed ?? this.speed,
       errorDescription: errorDescription ?? this.errorDescription,
       isPip: isPip ?? this.isPip,
-      bitrate: bitrate ?? this.bitrate
+      bitrate: bitrate ?? this.bitrate,
+        nerdStatValue: nerdStatValue ?? this.nerdStatValue
     );
   }
 
@@ -271,6 +277,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isPip: false, bitrate: event.bitrate);
           break;
         case VideoEventType.unknown:
+          break;
+        case VideoEventType.nerdStat:
+          print(' ------------------- 3333333333333333 video player event ${event.nerdStat}');
+          value = value.copyWith(isPip: false, nerdStatValue: event.nerdStat);
           break;
       }
     }
