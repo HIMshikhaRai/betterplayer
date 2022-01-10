@@ -40,7 +40,6 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
@@ -52,8 +51,6 @@ import com.google.android.exoplayer2.drm.UnsupportedDrmException;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
-import com.google.android.exoplayer2.source.LoadEventInfo;
-import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
@@ -73,7 +70,6 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -120,7 +116,7 @@ final class BetterPlayer {
     private HashMap<UUID, Observer<WorkInfo>> workerObserverMap;
     private CustomDefaultLoadControl customDefaultLoadControl;
     private long lastSendBufferedPosition = 0L;
-
+    public NerdStatHelper nerdStatHelper;
 
     BetterPlayer(
             Context context,
@@ -149,7 +145,7 @@ final class BetterPlayer {
         workManager = WorkManager.getInstance(context);
         workerObserverMap = new HashMap<>();
 
-        NerdStatHelper nerdStatHelper = new NerdStatHelper(exoPlayer, new TextView(context), eventSink, exoPlayer.getCurrentTrackSelections(), new DefaultTrackNameProvider(context.getResources()), context);
+        nerdStatHelper = new NerdStatHelper(exoPlayer, new TextView(context), eventSink, exoPlayer.getCurrentTrackSelections(), new DefaultTrackNameProvider(context.getResources()), context);
         nerdStatHelper.init();
 
         setupVideoPlayer(eventChannel, textureEntry, result);
@@ -389,13 +385,10 @@ final class BetterPlayer {
                 mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
                         .build());
-                Log.d("play_back_state_change",playbackState+"   ");
                 if(playbackState == PlaybackState.STATE_BUFFERING){
 
                 }else if(playbackState == PlaybackState.ACTION_PLAY){
                     sendEvent("play");
-
-                    Log.d("play_back_state_change",playbackState+"   "+exoPlayer.getVideoFormat().bitrate);
                 }
             }
         };

@@ -512,6 +512,7 @@ public class BetterPlayerPlugin implements FlutterPlugin, ActivityAware, MethodC
 
     private void dispose(BetterPlayer player, long textureId) {
         player.dispose();
+        player.nerdStatHelper.onStop();
         videoPlayers.remove(textureId);
         dataSources.remove(textureId);
         stopPipHandler();

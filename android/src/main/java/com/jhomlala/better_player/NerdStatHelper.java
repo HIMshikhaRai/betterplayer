@@ -65,6 +65,12 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
         start();
     }
 
+    public void onStop(){
+        stop();
+        exoPlayer.removeAnalyticsListener(this);
+        statsHandler.removeCallbacks(statsRunnable);
+    }
+
     @Override
     public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
         totalBufferedDs = eventTime.totalBufferedDurationMs;
@@ -99,13 +105,13 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
         if(Player.STATE_READY == state){
             statsHandler.postDelayed(statsRunnable,1000);
         }
-
     }
 
     @Override
     protected String getDebugString() {
         return super.getDebugString();
     }
+
 
     @Override
     protected String getVideoString() {
@@ -162,10 +168,9 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
             eventSink.success(event);
             return data;
         }
-
-
         return super.getVideoString();
     }
+
 
     private String getDecoderCountersBufferCountString(DecoderCounters counters) {
         if (counters == null) {
