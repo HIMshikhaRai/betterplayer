@@ -135,6 +135,8 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
         String brEstimateFloat = DemoUtil.getFormattedDouble(bitrateEstimateValue / Math.pow(10.0, 3.0), 1);
         if (format == null)
             return "";
+        if (exoPlayer.getAudioFormat() == null)
+            return "";
         if (format != null || decoderCounters != null) {
             String data = "Buffer Health: " + buffer + " s" + "\n" +
                     "Conn Speed: " + DemoUtil.humanReadableByteCount(
