@@ -270,9 +270,11 @@ class _BetterPlayerVideoFitWidgetState
           return;
         }
 
-        if (_initialized != controller!.value.initialized) {
-          _initialized = controller!.value.initialized;
-          setState(() {});
+        if (_initialized != controller?.value.initialized) {
+          if(controller?.value.initialized != null){
+            _initialized = controller!.value.initialized;
+            setState(() {});
+          }
         }
       };
       controller!.addListener(_initializedListener!);
@@ -325,8 +327,7 @@ class _BetterPlayerVideoFitWidgetState
   @override
   void dispose() {
     if (_initializedListener != null) {
-      widget.betterPlayerController.videoPlayerController!
-          .removeListener(_initializedListener!);
+      widget.betterPlayerController.videoPlayerController?.removeListener(_initializedListener!);
     }
     _controllerEventSubscription?.cancel();
     super.dispose();

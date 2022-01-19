@@ -83,8 +83,7 @@ class _BetterPlayerSubtitlesDrawerState
 
   @override
   void dispose() {
-    widget.betterPlayerController.videoPlayerController!
-        .removeListener(_updateState);
+    widget.betterPlayerController.videoPlayerController?.removeListener(_updateState);
     _visibilityStreamSubscription.cancel();
     super.dispose();
   }
@@ -94,7 +93,7 @@ class _BetterPlayerSubtitlesDrawerState
     if (mounted) {
       setState(() {
         _latestValue =
-            widget.betterPlayerController.videoPlayerController!.value;
+            widget.betterPlayerController.videoPlayerController?.value;
       });
     }
   }
