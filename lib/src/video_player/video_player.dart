@@ -279,7 +279,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.unknown:
           break;
         case VideoEventType.nerdStat:
-          print(' ------------------- 3333333333333333 video player event ${event.nerdStat}');
           value = value.copyWith(isPip: false, nerdStatValue: event.nerdStat);
           break;
       }
