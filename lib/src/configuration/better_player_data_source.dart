@@ -18,7 +18,7 @@ class BetterPlayerDataSource {
   final String url;
 
   ///Url of the video ads
-  final String adsUrl;
+  final String? adsUrl;
 
   ///Subtitles configuration
   final List<BetterPlayerSubtitlesSource>? subtitles;
@@ -114,7 +114,7 @@ class BetterPlayerDataSource {
   ///Bytes parameter is not used in this data source.
   factory BetterPlayerDataSource.network(
       String url, {
-        String adsUrl,
+        String? adsUrl,
         List<BetterPlayerSubtitlesSource>? subtitles,
         bool? liveStream,
         Map<String, String>? headers,
@@ -157,7 +157,7 @@ class BetterPlayerDataSource {
   ///Bytes parameter is not used in this data source.
   factory BetterPlayerDataSource.file(
       String url, {
-        String adsUrl,
+        String? adsUrl,
         List<BetterPlayerSubtitlesSource>? subtitles,
         bool? useAsmsSubtitles,
         bool? useAsmsTracks,
