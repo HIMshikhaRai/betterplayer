@@ -127,7 +127,9 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
         AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
         int currentVolume = audioManager.getStreamVolume(STREAM_MUSIC);
         int maxVolume = audioManager.getStreamMaxVolume(STREAM_MUSIC);
-        int currentVolumePercentage = 100 * currentVolume / maxVolume;
+        int currentVolumePercentage = 0;
+        if(maxVolume != 0)
+            currentVolumePercentage = 100 * currentVolume / maxVolume;
 
         Format format = exoPlayer.getVideoFormat();
         DecoderCounters decoderCounters = exoPlayer.getVideoDecoderCounters();
