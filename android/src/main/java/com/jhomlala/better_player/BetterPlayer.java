@@ -1,5 +1,6 @@
 package com.jhomlala.better_player;
 
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -17,6 +18,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.Surface;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,6 +30,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ControlDispatcher;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -48,10 +51,13 @@ import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
 import com.google.android.exoplayer2.drm.HttpMediaDrmCallback;
 import com.google.android.exoplayer2.drm.LocalMediaDrmCallback;
 import com.google.android.exoplayer2.drm.UnsupportedDrmException;
+import com.google.android.exoplayer2.ext.ima.ImaAdsLoader;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSourceFactory;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -95,7 +101,7 @@ final class BetterPlayer {
     private static final String DEFAULT_NOTIFICATION_CHANNEL = "BETTER_PLAYER_NOTIFICATION";
     private static final int NOTIFICATION_ID = 20772077;
 
-    private final SimpleExoPlayer exoPlayer;
+    private final ExoPlayer exoPlayer;
     private final TextureRegistry.SurfaceTextureEntry textureEntry;
     private final QueuingEventSink eventSink = new QueuingEventSink();
     private final EventChannel eventChannel;
@@ -117,7 +123,8 @@ final class BetterPlayer {
     private CustomDefaultLoadControl customDefaultLoadControl;
     private long lastSendBufferedPosition = 0L;
     public NerdStatHelper nerdStatHelper;
-
+    private ImaAdsLoader adsLoader;
+    private String AdsTAG = "IMALOADERSTATUS";
     BetterPlayer(
             Context context,
             EventChannel eventChannel,
@@ -137,11 +144,27 @@ final class BetterPlayer {
                 this.customDefaultLoadControl.bufferForPlaybackMs,
                 this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs);
         loadControl = loadBuilder.build();
+        DataSource.Factory dataSourceFactory =
+                new DefaultDataSourceFactory(context);
 
-        exoPlayer = new SimpleExoPlayer.Builder(context)
+
+        adsLoader = new ImaAdsLoader.Builder(context).setAdEventListener(adEvent -> {
+            Log.d(AdsTAG, adEvent.getType().name());
+        }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener(adError -> {
+            Log.e("CheckingAdError", adError.toString());
+        }).build();
+
+        MediaSourceFactory mediaSourceFactory =
+                new DefaultMediaSourceFactory(dataSourceFactory)
+                        .setAdsLoaderProvider(unusedAdTagUri -> adsLoader).setAdViewProvider( () -> ((Activity)context).getWindow().getDecorView().findViewById(android.R.id.content));
+
+        exoPlayer = new ExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
+                .setMediaSourceFactory(mediaSourceFactory)
                 .build();
+        adsLoader.setPlayer(exoPlayer);
+
         workManager = WorkManager.getInstance(context);
         workerObserverMap = new HashMap<>();
 
@@ -152,14 +175,18 @@ final class BetterPlayer {
     }
 
     void setDataSource(
-            Context context, String key, String dataSource, String formatHint, Result result,
+            Context context, String key, String dataSource,String adsLink, String formatHint, Result result,
             Map<String, String> headers, boolean useCache, long maxCacheSize, long maxCacheFileSize,
             long overriddenDuration, String licenseUrl, Map<String, String> drmHeaders,
             String cacheKey, String clearKey) {
         this.key = key;
         isInitialized = false;
-
+        Uri adsUri = null;
         Uri uri = Uri.parse(dataSource);
+        if(adsLink != null && !adsLink.isEmpty()){
+            adsUri = Uri.parse(adsLink);
+        }
+
         DataSource.Factory dataSourceFactory;
 
         String userAgent = getUserAgent(headers);
@@ -222,7 +249,7 @@ final class BetterPlayer {
             dataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
         }
 
-        MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint, cacheKey, context);
+        MediaSource mediaSource = buildMediaSource(uri, adsUri, dataSourceFactory, formatHint, cacheKey, context);
         if (overriddenDuration != 0) {
             ClippingMediaSource clippingMediaSource = new ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000);
             exoPlayer.setMediaSource(clippingMediaSource);
@@ -493,7 +520,7 @@ final class BetterPlayer {
 
 
     private MediaSource buildMediaSource(
-            Uri uri, DataSource.Factory mediaDataSourceFactory, String formatHint, String cacheKey,
+            Uri uri,Uri adsUri, DataSource.Factory mediaDataSourceFactory, String formatHint, String cacheKey,
             Context context) {
         int type;
         if (formatHint == null) {
@@ -521,8 +548,14 @@ final class BetterPlayer {
                     break;
             }
         }
+
         MediaItem.Builder mediaItemBuilder = new MediaItem.Builder();
         mediaItemBuilder.setUri(uri);
+
+        if(adsUri != null){
+            MediaItem.AdsConfiguration adsConfiguration = new MediaItem.AdsConfiguration.Builder(adsUri).build();
+            mediaItemBuilder.setAdsConfiguration(adsConfiguration);
+        }
         if (cacheKey != null && cacheKey.length() > 0) {
             mediaItemBuilder.setCustomCacheKey(cacheKey);
         }

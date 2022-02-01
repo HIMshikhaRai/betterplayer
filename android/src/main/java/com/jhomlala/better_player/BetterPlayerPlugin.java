@@ -46,6 +46,7 @@ public class BetterPlayerPlugin implements FlutterPlugin, ActivityAware, MethodC
     private static final String ASSET_PARAMETER = "asset";
     private static final String PACKAGE_PARAMETER = "package";
     private static final String URI_PARAMETER = "uri";
+    private static final String ADS_URI_PARAMETER = "adsUri";
     private static final String FORMAT_HINT_PARAMETER = "formatHint";
     private static final String TEXTURE_ID_PARAMETER = "textureId";
     private static final String LOOPING_PARAMETER = "looping";
@@ -327,6 +328,7 @@ public class BetterPlayerPlugin implements FlutterPlugin, ActivityAware, MethodC
             long maxCacheSize = maxCacheSizeNumber.longValue();
             long maxCacheFileSize = maxCacheFileSizeNumber.longValue();
             String uri = getParameter(dataSource, URI_PARAMETER, "");
+            String adsUri = getParameter(dataSource, ADS_URI_PARAMETER, "");
             String cacheKey = getParameter(dataSource, CACHE_KEY_PARAMETER, null);
             String formatHint = getParameter(dataSource, FORMAT_HINT_PARAMETER, null);
             String licenseUrl = getParameter(dataSource, LICENSE_URL_PARAMETER, null);
@@ -336,6 +338,7 @@ public class BetterPlayerPlugin implements FlutterPlugin, ActivityAware, MethodC
                     flutterState.applicationContext,
                     key,
                     uri,
+                    adsUri,
                     formatHint,
                     result,
                     headers,

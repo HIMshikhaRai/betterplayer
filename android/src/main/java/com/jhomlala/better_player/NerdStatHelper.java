@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -39,7 +40,7 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
     private String audioTrackName = "";
     private String videoTrackName = "";
     private Context context;
-    private SimpleExoPlayer exoPlayer;
+    private ExoPlayer exoPlayer;
     private Handler statsHandler = new Handler();
     private Runnable statsRunnable = new Runnable() {
         @Override
@@ -50,7 +51,7 @@ public class NerdStatHelper extends DebugTextViewHelper implements AnalyticsList
         }
     };
 
-    public NerdStatHelper(SimpleExoPlayer exoPlayer, TextView textView, QueuingEventSink queuingEventSink, TrackSelectionArray trackSelectionArray, TrackNameProvider trackNameProvider,
+    public NerdStatHelper(ExoPlayer exoPlayer, TextView textView, QueuingEventSink queuingEventSink, TrackSelectionArray trackSelectionArray, TrackNameProvider trackNameProvider,
                           Context context) {
         super(exoPlayer, textView);
         eventSink = queuingEventSink;
