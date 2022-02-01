@@ -8,16 +8,16 @@ buildscript {
     ext.annotationVersion = "1.2.0"
     ext.workVersion = "2.7.0"
     ext.coreVersion = "1.6.0"
-    ext.gradleVersion = "4.1.0"
-    ext.kotlinVersion = "1.5.31"
+    ext.gradleVersion = "4.2.0"
+    ext.kotlinVersion = "1.4.0"
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$gradleVersion"
+    }
 
     repositories {
         google()
         mavenCentral()
-    }
-
-    dependencies {
-        classpath "com.android.tools.build:gradle:$gradleVersion"
     }
 }
 
@@ -27,9 +27,15 @@ rootProject.allprojects {
         mavenCentral()
     }
 }
+//
+//plugins {
+//    id 'com.android.application'
+//    id 'kotlin-android'
+//    id 'kotlin-android-extensions'
+//}
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+//apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
@@ -72,6 +78,8 @@ dependencies {
 }
 repositories {
     mavenCentral()
+    jcenter()
+
 }
 
 
