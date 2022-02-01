@@ -93,6 +93,7 @@ internal class BetterPlayer(
     private val customDefaultLoadControl: CustomDefaultLoadControl =
         customDefaultLoadControl ?: CustomDefaultLoadControl()
     private var lastSendBufferedPosition = 0L
+    var nerdStatHelper: NerdStatHelper? = null
 
     init {
         val loadBuilder = DefaultLoadControl.Builder()
@@ -103,19 +104,55 @@ internal class BetterPlayer(
             this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs
         )
         loadControl = loadBuilder.build()
+        adsLoader =
+            ImaAdsLoader.Builder(context).setAdEventListener(AdEventListener { adEvent: AdEvent ->
+                android.util.Log.d(
+                    AdsTAG,
+                    adEvent.getType().name
+                )
+            }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener(
+                AdErrorListener { adError: AdErrorEvent ->
+                    android.util.Log.e(
+                        "CheckingAdError",
+                        adError.toString()
+                    )
+                }).build()
+
+        val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
+            .setAdsLoaderProvider(AdsLoaderProvider { unusedAdTagUri: AdsConfiguration? -> adsLoader })
+            .setAdViewProvider(
+                AdViewProvider {
+                    (context as Activity).getWindow().getDecorView()
+                        .findViewById<ViewGroup>(android.R.id.content)
+                })
+
         exoPlayer = SimpleExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
             .setLoadControl(loadControl)
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
+
+        adsLoader.setPlayer(exoPlayer)
+
+
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
+        nerdStatHelper = NerdStatHelper(
+            exoPlayer,
+            TextView(context),
+            eventSink,
+            exoPlayer.getCurrentTrackSelections(),
+            DefaultTrackNameProvider(context.getResources()),
+            context
+        )
+        nerdStatHelper.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
     }
 
     fun setDataSource(
         context: Context,
         key: String?,
-        dataSource: String?,
+        dataSource: String?,String adsLink,
         formatHint: String?,
         result: MethodChannel.Result,
         headers: Map<String, String>?,
@@ -130,7 +167,11 @@ internal class BetterPlayer(
     ) {
         this.key = key
         isInitialized = false
-        val uri = Uri.parse(dataSource)
+        var adsUri: Uri? = null
+        val uri: Uri = Uri.parse(dataSource)
+        if (adsLink != null && !adsLink.isEmpty()) {
+            adsUri = Uri.parse(adsLink)
+        }
         var dataSourceFactory: DataSource.Factory?
         val userAgent = getUserAgent(headers)
         if (licenseUrl != null && licenseUrl.isNotEmpty()) {
@@ -191,7 +232,7 @@ internal class BetterPlayer(
         } else {
             dataSourceFactory = DefaultDataSourceFactory(context, userAgent)
         }
-        val mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint, cacheKey, context)
+        val mediaSource = buildMediaSource(uri,adsUri, dataSourceFactory, formatHint, cacheKey, context)
         if (overriddenDuration != 0L) {
             val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
             exoPlayer!!.setMediaSource(clippingMediaSource)
@@ -436,7 +477,7 @@ internal class BetterPlayer(
     }
 
     private fun buildMediaSource(
-        uri: Uri,
+        uri: Uri,Uri adsUri,
         mediaDataSourceFactory: DataSource.Factory,
         formatHint: String?,
         cacheKey: String?,
@@ -460,6 +501,10 @@ internal class BetterPlayer(
         }
         val mediaItemBuilder = MediaItem.Builder()
         mediaItemBuilder.setUri(uri)
+        if (adsUri != null) {
+            val adsConfiguration: AdsConfiguration = Builder(adsUri).build()
+            mediaItemBuilder.setAdsConfiguration(adsConfiguration)
+        }
         if (cacheKey != null && cacheKey.isNotEmpty()) {
             mediaItemBuilder.setCustomCacheKey(cacheKey)
         }
