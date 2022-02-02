@@ -1,6 +1,8 @@
 package com.jhomlala.better_player
 
+import android.R
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -13,56 +15,52 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import com.jhomlala.better_player.DataSourceUtils.getUserAgent
-import com.jhomlala.better_player.DataSourceUtils.isHTTP
-import com.jhomlala.better_player.DataSourceUtils.getDataSourceFactory
-import io.flutter.plugin.common.EventChannel
-import io.flutter.view.TextureRegistry.SurfaceTextureEntry
-import io.flutter.plugin.common.MethodChannel
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import android.support.v4.media.session.MediaSessionCompat
-import com.google.android.exoplayer2.drm.DrmSessionManager
-import androidx.work.WorkManager
-import androidx.work.WorkInfo
-import com.google.android.exoplayer2.drm.HttpMediaDrmCallback
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.drm.DefaultDrmSessionManager
-import com.google.android.exoplayer2.drm.FrameworkMediaDrm
-import com.google.android.exoplayer2.drm.UnsupportedDrmException
-import com.google.android.exoplayer2.drm.DummyExoMediaDrm
-import com.google.android.exoplayer2.drm.LocalMediaDrmCallback
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ClippingMediaSource
-import com.google.android.exoplayer2.ui.PlayerNotificationManager.MediaDescriptionAdapter
-import com.google.android.exoplayer2.ui.PlayerNotificationManager.BitmapCallback
-import androidx.work.OneTimeWorkRequest
-import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.Surface
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.lifecycle.Observer
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
-import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
+import androidx.media.session.MediaButtonReceiver
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.google.ads.interactivemedia.v3.api.AdErrorEvent
+import com.google.ads.interactivemedia.v3.api.AdEvent
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.drm.*
+import com.google.android.exoplayer2.ext.ima.ImaAdsLoader
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.source.*
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
-import io.flutter.plugin.common.EventChannel.EventSink
-import androidx.media.session.MediaButtonReceiver
-import androidx.work.Data
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.SelectionOverride
+import com.google.android.exoplayer2.ui.AdViewProvider
+import com.google.android.exoplayer2.ui.DefaultTrackNameProvider
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.google.android.exoplayer2.ui.PlayerNotificationManager.BitmapCallback
+import com.google.android.exoplayer2.ui.PlayerNotificationManager.MediaDescriptionAdapter
 import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
+import com.jhomlala.better_player.DataSourceUtils.getDataSourceFactory
+import com.jhomlala.better_player.DataSourceUtils.getUserAgent
+import com.jhomlala.better_player.DataSourceUtils.isHTTP
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.EventChannel.EventSink
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.view.TextureRegistry.SurfaceTextureEntry
 import java.io.File
-import java.lang.Exception
-import java.lang.IllegalStateException
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -104,27 +102,27 @@ internal class BetterPlayer(
             this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs
         )
         loadControl = loadBuilder.build()
-        adsLoader =
-            ImaAdsLoader.Builder(context).setAdEventListener(AdEventListener { adEvent: AdEvent ->
-                android.util.Log.d(
+        val adsLoader =
+            ImaAdsLoader.Builder(context).setAdEventListener(AdEvent.AdEventListener { adEvent: AdEvent ->
+                val AdsTAG = "CheckingAdError"
+                Log.d(
                     AdsTAG,
                     adEvent.getType().name
                 )
-            }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener(
-                AdErrorListener { adError: AdErrorEvent ->
-                    android.util.Log.e(
-                        "CheckingAdError",
-                        adError.toString()
-                    )
-                }).build()
-
+            }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener { adError: AdErrorEvent ->
+                Log.e(
+                    "CheckingAdError",
+                    adError.toString()
+                )
+            }.build()
+        val dataSourceFactory: DataSource.Factory =
+            DefaultDataSourceFactory(context, "Livetv")
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
-            .setAdsLoaderProvider(AdsLoaderProvider { unusedAdTagUri: AdsConfiguration? -> adsLoader })
-            .setAdViewProvider(
-                AdViewProvider {
-                    (context as Activity).getWindow().getDecorView()
-                        .findViewById<ViewGroup>(android.R.id.content)
-                })
+            .setAdsLoaderProvider { unusedAdTagUri: MediaItem.AdsConfiguration? -> adsLoader }
+            .setAdViewProvider{
+                    (context as Activity).window.decorView
+                        .findViewById(R.id.content)
+                }
 
         exoPlayer = SimpleExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
@@ -145,18 +143,19 @@ internal class BetterPlayer(
             DefaultTrackNameProvider(context.getResources()),
             context
         )
-        nerdStatHelper.init()
+        nerdStatHelper?.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
     }
 
     fun setDataSource(
         context: Context,
         key: String?,
-        dataSource: String?,String adsLink,
+        dataSource: String?,
+        adsLink: String?,
         formatHint: String?,
         result: MethodChannel.Result,
         headers: Map<String, String>?,
-        useCache: Boolean,
+        useCache: Map<String, String>?,
         maxCacheSize: Long,
         maxCacheFileSize: Long,
         overriddenDuration: Long,
@@ -221,18 +220,18 @@ internal class BetterPlayer(
         }
         if (isHTTP(uri)) {
             dataSourceFactory = getDataSourceFactory(userAgent, headers)
-            if (useCache && maxCacheSize > 0 && maxCacheFileSize > 0) {
-                dataSourceFactory = CacheDataSourceFactory(
-                    context,
-                    maxCacheSize,
-                    maxCacheFileSize,
-                    dataSourceFactory
-                )
-            }
+//            if (useCache && maxCacheSize > 0 && maxCacheFileSize > 0) {
+//                dataSourceFactory = CacheDataSourceFactory(
+//                    context,
+//                    maxCacheSize,
+//                    maxCacheFileSize,
+//                    dataSourceFactory
+//                )
+//            }
         } else {
             dataSourceFactory = DefaultDataSourceFactory(context, userAgent)
         }
-        val mediaSource = buildMediaSource(uri,adsUri, dataSourceFactory, formatHint, cacheKey, context)
+        val mediaSource = buildMediaSource(uri, adsUri, dataSourceFactory, formatHint, cacheKey, context)
         if (overriddenDuration != 0L) {
             val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
             exoPlayer!!.setMediaSource(clippingMediaSource)
@@ -477,7 +476,7 @@ internal class BetterPlayer(
     }
 
     private fun buildMediaSource(
-        uri: Uri,Uri adsUri,
+        uri: Uri,adsUri: Uri?,
         mediaDataSourceFactory: DataSource.Factory,
         formatHint: String?,
         cacheKey: String?,
@@ -502,8 +501,8 @@ internal class BetterPlayer(
         val mediaItemBuilder = MediaItem.Builder()
         mediaItemBuilder.setUri(uri)
         if (adsUri != null) {
-            val adsConfiguration: AdsConfiguration = Builder(adsUri).build()
-            mediaItemBuilder.setAdsConfiguration(adsConfiguration)
+//            val adsConfiguration: MediaItem.AdsConfiguration = MediaItem.AdsConfiguration(adsUri)
+            mediaItemBuilder.setAdTagUri(adsUri)
         }
         if (cacheKey != null && cacheKey.isNotEmpty()) {
             mediaItemBuilder.setCustomCacheKey(cacheKey)
