@@ -475,7 +475,6 @@ internal class BetterPlayer(
         bitmap = null
     }
 
-
     private fun buildMediaSource(
         uri: Uri,adsUri: Uri?,
         mediaDataSourceFactory: DataSource.Factory,
@@ -483,24 +482,22 @@ internal class BetterPlayer(
         cacheKey: String?,
         context: Context
     ): MediaSource {
-//        val type: Int
-        @ContentType val type: Int = Util.inferContentType(uri, null)
-
-//        if (formatHint == null) {
-//            var lastPathSegment = uri.lastPathSegment
-//            if (lastPathSegment == null) {
-//                lastPathSegment = ""
-//            }
-//            type = Util.inferContentType(lastPathSegment)
-//        } else {
-//            type = when (formatHint) {
-//                FORMAT_SS -> C.TYPE_SS
-//                FORMAT_DASH -> C.TYPE_DASH
-//                FORMAT_HLS -> C.TYPE_HLS
-//                FORMAT_OTHER -> C.TYPE_OTHER
-//                else -> -1
-//            }
-//        }
+        val type: Int
+        if (formatHint == null) {
+            var lastPathSegment = uri.lastPathSegment
+            if (lastPathSegment == null) {
+                lastPathSegment = ""
+            }
+            type = Util.inferContentType(lastPathSegment)
+        } else {
+            type = when (formatHint) {
+                FORMAT_SS -> C.TYPE_SS
+                FORMAT_DASH -> C.TYPE_DASH
+                FORMAT_HLS -> C.TYPE_HLS
+                FORMAT_OTHER -> C.TYPE_OTHER
+                else -> -1
+            }
+        }
         val mediaItemBuilder = MediaItem.Builder()
         mediaItemBuilder.setUri(uri)
         if (adsUri != null) {
@@ -515,11 +512,6 @@ internal class BetterPlayer(
         if (drmSessionManager != null) {
             drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager!! }
         }
-
-        if (uri.toString().contains("rtmp")) {
-            mediaDataSourceFactory = buildRtmp()
-        }
-
         return when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
                 DefaultSsChunkSource.Factory(mediaDataSourceFactory),
@@ -547,11 +539,6 @@ internal class BetterPlayer(
             }
         }
     }
-
-    private fun buildRtmp(): com.google.android.exoplayer2.upstream.DataSource.Factory? {
-        return RtmpDataSource.Factory()
-    }
-
 
     private fun setupVideoPlayer(
         eventChannel: EventChannel, textureEntry: SurfaceTextureEntry, result: MethodChannel.Result
