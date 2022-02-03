@@ -1,10 +1,13 @@
-import 'package:better_player/src/asms/better_player_asms_audio_track.dart';
+// External Package imports:
 import 'package:better_player/src/asms/better_player_asms_data_holder.dart';
-import 'package:better_player/src/asms/better_player_asms_subtitle.dart';
-import 'package:better_player/src/asms/better_player_asms_track.dart';
 import 'package:better_player/src/core/better_player_utils.dart';
 import 'package:better_player/src/hls/hls_parser/mime_types.dart';
 import 'package:xml/xml.dart';
+
+// Project imports:
+import 'package:better_player/src/asms/better_player_asms_audio_track.dart';
+import 'package:better_player/src/asms/better_player_asms_subtitle.dart';
+import 'package:better_player/src/asms/better_player_asms_track.dart';
 
 ///DASH helper class
 class BetterPlayerDashUtils {

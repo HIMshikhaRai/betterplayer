@@ -6,6 +6,7 @@
 #import <Flutter/Flutter.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import <KTVHTTPCache/KTVHTTPCache.h>
 #import <GLKit/GLKit.h>
 #import "BetterPlayerTimeUtils.h"
 #import "BetterPlayer.h"
