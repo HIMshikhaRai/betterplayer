@@ -1,8 +1,5 @@
 import 'dart:async';
-
 import 'package:better_player/better_player.dart';
-import 'package:better_player/src/configuration/better_player_data_source.dart';
-import 'package:better_player/src/core/better_player_controller.dart';
 
 ///Controller used to manage playlist player.
 class BetterPlayerPlaylistController {
@@ -52,9 +49,8 @@ class BetterPlayerPlaylistController {
     _currentDataSourceIndex = initialStartIndex;
     setupDataSource(_currentDataSourceIndex);
     _betterPlayerController!.addEventsListener(_handleEvent);
-    _nextVideoTimeStreamSubscription = _betterPlayerController!
-        .nextVideoTimeStreamController.stream
-        .listen((time) {
+    _nextVideoTimeStreamSubscription =
+        _betterPlayerController!.nextVideoTimeStream.listen((time) {
       if (time != null && time == 0) {
         _onVideoChange();
       }
