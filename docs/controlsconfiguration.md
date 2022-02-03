@@ -164,12 +164,3 @@ final double sigmaX;
 ///Quality of Gaussian Blur for y (iOS only).
 final double sigmaY;
 ```
-
-You can change controls configuration in runtime with `setBetterPlayerControlsConfiguration` method of `BetterPlayerController`.
-
-```dart
- _betterPlayerController.setBetterPlayerControlsConfiguration(
-                  BetterPlayerControlsConfiguration(
-                      overflowModalColor: Colors.amberAccent),
-                );
-```

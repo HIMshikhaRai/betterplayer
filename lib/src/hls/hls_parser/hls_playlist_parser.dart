@@ -500,7 +500,8 @@ class HlsPlaylistParser {
             if (instreamId.startsWith('CC')) {
               mimeType = MimeTypes.applicationCea608;
               accessibilityChannel = int.parse(instreamId.substring(2));
-            } else /* starts with SERVICE */ {
+            } else
+            /* starts with SERVICE */ {
               mimeType = MimeTypes.applicationCea708;
               accessibilityChannel = int.parse(instreamId.substring(7));
             }
@@ -601,7 +602,6 @@ class HlsPlaylistParser {
 
   static int _parseSelectionFlags(String line) {
     int flags = 0;
-
     if (parseOptionalBooleanAttribute(
         line: line,
         pattern: regexpDefault,
@@ -622,14 +622,8 @@ class HlsPlaylistParser {
     required String pattern,
     required bool defaultValue,
   }) {
-    final regExp = RegExp(pattern);
-    final List<Match> list = regExp.allMatches(line).toList();
-    final ret = list.isEmpty
-        ? defaultValue
-        : line
-            .substring(list.first.start, list.first.end)
-            .contains(booleanTrue);
-    return ret;
+    final List<Match> list = line.allMatches(pattern).toList();
+    return list.isEmpty ? defaultValue : list.first.pattern == booleanTrue;
   }
 
   static int _parseRoleFlags(
@@ -836,7 +830,8 @@ class HlsPlaylistParser {
         if (methodNone == method) {
           currentSchemeDatas.clear();
           cachedDrmInitData = null;
-        } else /* !METHOD_NONE.equals(method) */ {
+        } else
+        /* !METHOD_NONE.equals(method) */ {
           fullSegmentEncryptionIV = _parseStringAttr(
               source: line,
               pattern: regexpIv,

@@ -30,9 +30,6 @@ class BetterPlayerAsmsSubtitle {
   ///List of subtitle segments. Only used when [isSegmented] is true.
   final List<BetterPlayerAsmsSubtitleSegment>? segments;
 
-  ///If the subtitle is the default
-  final bool? isDefault;
-
   BetterPlayerAsmsSubtitle({
     this.language,
     this.name,
@@ -43,6 +40,5 @@ class BetterPlayerAsmsSubtitle {
     this.isSegmented,
     this.segmentsTime,
     this.segments,
-    this.isDefault,
   });
 }
