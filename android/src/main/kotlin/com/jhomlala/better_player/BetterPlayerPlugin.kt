@@ -117,7 +117,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 }
                 val player = BetterPlayer(
                     flutterState!!.applicationContext, eventChannel, handle,
-                    customDefaultLoadControl, result
+                    customDefaultLoadControl, result, activity
                 )
                 videoPlayers.put(handle.id(), player)
             }
@@ -280,8 +280,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 flutterState!!.applicationContext,
                 key,
                 uri,
-                null,
                 adsUri,
+                null,
                 result,
                 headers,
                 null,
@@ -494,7 +494,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val ASSET_PARAMETER = "asset"
         private const val PACKAGE_PARAMETER = "package"
         private const val URI_PARAMETER = "uri"
-        private const val ADS_URI_PARAMETER = "ads_uri"
+        private const val ADS_URI_PARAMETER = "ads_url"
         private const val FORMAT_HINT_PARAMETER = "formatHint"
         private const val TEXTURE_ID_PARAMETER = "textureId"
         private const val LOOPING_PARAMETER = "looping"
