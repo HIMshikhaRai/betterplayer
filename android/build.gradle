@@ -13,6 +13,8 @@ buildscript {
 
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+
     }
 
     repositories {
@@ -29,21 +31,15 @@ rootProject.allprojects {
         jcenter()
     }
 }
-//
-//plugins {
-//    id 'com.android.application'
-//    id 'kotlin-android'
-//    id 'kotlin-android-extensions'
-//}
 
 apply plugin: 'com.android.library'
-//apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 17
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
