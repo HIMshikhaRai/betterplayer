@@ -1,6 +1,5 @@
 package com.jhomlala.better_player
 
-import android.R
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
@@ -20,7 +19,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.Surface
-import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.lifecycle.Observer
 import androidx.media.session.MediaButtonReceiver
@@ -35,6 +34,7 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.drm.*
 import com.google.android.exoplayer2.ext.ima.ImaAdsLoader
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.ext.rtmp.RtmpDataSource
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.*
 import com.google.android.exoplayer2.source.dash.DashMediaSource
@@ -44,7 +44,6 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.SelectionOverride
-import com.google.android.exoplayer2.ui.AdViewProvider
 import com.google.android.exoplayer2.ui.DefaultTrackNameProvider
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.PlayerNotificationManager.BitmapCallback
@@ -60,6 +59,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry
+import com.jhomlala.better_player.NerdStatHelper
 import java.io.File
 import java.util.*
 import kotlin.math.max
@@ -70,7 +70,8 @@ internal class BetterPlayer(
     private val eventChannel: EventChannel,
     private val textureEntry: SurfaceTextureEntry,
     customDefaultLoadControl: CustomDefaultLoadControl?,
-    result: MethodChannel.Result
+    result: MethodChannel.Result,
+    activity: Activity?
 ) {
     private val exoPlayer: SimpleExoPlayer?
     private val eventSink = QueuingEventSink()
@@ -91,7 +92,7 @@ internal class BetterPlayer(
     private val customDefaultLoadControl: CustomDefaultLoadControl =
         customDefaultLoadControl ?: CustomDefaultLoadControl()
     private var lastSendBufferedPosition = 0L
-    var nerdStatHelper: NerdStatHelper? = null
+//    var nerdStatHelper: NerdStatHelper? = null
 
     init {
         val loadBuilder = DefaultLoadControl.Builder()
@@ -102,6 +103,8 @@ internal class BetterPlayer(
             this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs
         )
         loadControl = loadBuilder.build()
+
+
         val adsLoader =
             ImaAdsLoader.Builder(context).setAdEventListener(AdEvent.AdEventListener { adEvent: AdEvent ->
                 val AdsTAG = "CheckingAdError"
@@ -112,7 +115,7 @@ internal class BetterPlayer(
             }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener { adError: AdErrorEvent ->
                 Log.e(
                     "CheckingAdError",
-                    adError.toString()
+                    adError.error.stackTraceToString()
                 )
             }.build()
         val dataSourceFactory: DataSource.Factory =
@@ -120,9 +123,12 @@ internal class BetterPlayer(
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { unusedAdTagUri: MediaItem.AdsConfiguration? -> adsLoader }
             .setAdViewProvider{
-                    (context as Activity).window.decorView
-                        .findViewById(R.id.content)
-                }
+                val imgLayout = FrameLayout(activity!!)
+                val lp: FrameLayout.LayoutParams =
+                    FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                imgLayout.layoutParams = lp
+                imgLayout
+            }
 
         exoPlayer = SimpleExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
@@ -135,15 +141,15 @@ internal class BetterPlayer(
 
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
-        nerdStatHelper = NerdStatHelper(
-            exoPlayer,
-            TextView(context),
-            eventSink,
-            exoPlayer.getCurrentTrackSelections(),
-            DefaultTrackNameProvider(context.getResources()),
-            context
-        )
-        nerdStatHelper?.init()
+//        nerdStatHelper = NerdStatHelper(
+//            exoPlayer,
+//            TextView(context),
+//            eventSink,
+//            exoPlayer.getCurrentTrackSelections(),
+//            DefaultTrackNameProvider(context.getResources()),
+//            context
+//        )
+//        nerdStatHelper?.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
     }
 
@@ -218,7 +224,10 @@ internal class BetterPlayer(
         } else {
             drmSessionManager = null
         }
-        if (isHTTP(uri)) {
+
+        if (uri.toString().contains("rtmp")) {
+            dataSourceFactory = buildRtmp()
+        }else if (isHTTP(uri)) {
             dataSourceFactory = getDataSourceFactory(userAgent, headers)
 //            if (useCache && maxCacheSize > 0 && maxCacheFileSize > 0) {
 //                dataSourceFactory = CacheDataSourceFactory(
@@ -232,13 +241,14 @@ internal class BetterPlayer(
             dataSourceFactory = DefaultDataSourceFactory(context, userAgent)
         }
         val mediaSource = buildMediaSource(uri, adsUri, dataSourceFactory, formatHint, cacheKey, context)
-        if (overriddenDuration != 0L) {
-            val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
-            exoPlayer!!.setMediaSource(clippingMediaSource)
-        } else {
-            exoPlayer!!.setMediaSource(mediaSource)
-        }
-        exoPlayer.prepare()
+//        if (overriddenDuration != 0L) {
+//            val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
+//            exoPlayer!!.setMediaSource(clippingMediaSource)
+//        } else {
+//            exoPlayer!!.setMediaSource(mediaSource)
+//        }
+        exoPlayer?.prepare()
+        exoPlayer?.playWhenReady = true
         result.success(null)
     }
 
@@ -484,7 +494,7 @@ internal class BetterPlayer(
         context: Context
     ): MediaSource {
 //        val type: Int
-        @ContentType val type: Int = Util.inferContentType(uri, null)
+        @C.ContentType val type: Int = Util.inferContentType(uri, null)
 
 //        if (formatHint == null) {
 //            var lastPathSegment = uri.lastPathSegment
@@ -515,11 +525,8 @@ internal class BetterPlayer(
         if (drmSessionManager != null) {
             drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager!! }
         }
-
-        if (uri.toString().contains("rtmp")) {
-            mediaDataSourceFactory = buildRtmp()
-        }
-
+        exoPlayer?.setMediaItem(mediaItem)
+        exoPlayer?.playWhenReady = true
         return when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
                 DefaultSsChunkSource.Factory(mediaDataSourceFactory),
@@ -548,7 +555,7 @@ internal class BetterPlayer(
         }
     }
 
-    private fun buildRtmp(): com.google.android.exoplayer2.upstream.DataSource.Factory? {
+    private fun buildRtmp(): DataSource.Factory{
         return RtmpDataSource.Factory()
     }
 
@@ -641,7 +648,7 @@ internal class BetterPlayer(
     }
 
     fun pause() {
-        exoPlayer!!.playWhenReady = false
+        exoPlayer!!.playWhenReady = true
     }
 
     fun setLooping(value: Boolean) {
@@ -698,15 +705,14 @@ internal class BetterPlayer(
             event["event"] = "initialized"
             event["key"] = key
             event["duration"] = getDuration()
-            if (exoPlayer!!.videoFormat != null) {
-                val videoFormat = exoPlayer.videoFormat
-                var width = videoFormat!!.width
-                var height = videoFormat.height
-                val rotationDegrees = videoFormat.rotationDegrees
+            if (exoPlayer!!.videoSize != null) {
+                var width = exoPlayer!!.videoSize.width
+                var height = exoPlayer!!.videoSize.height
+                val rotationDegrees = exoPlayer!!.videoSize.unappliedRotationDegrees
                 // Switch the width/height if video was taken in portrait mode
                 if (rotationDegrees == 90 || rotationDegrees == 270) {
-                    width = exoPlayer.videoFormat!!.height
-                    height = exoPlayer.videoFormat!!.width
+                    width = exoPlayer.videoSize!!.height
+                    height = exoPlayer.videoSize!!.width
                 }
                 event["width"] = width
                 event["height"] = height
