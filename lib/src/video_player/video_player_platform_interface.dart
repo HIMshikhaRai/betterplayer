@@ -207,6 +207,7 @@ class DataSource {
   DataSource({
     required this.sourceType,
     this.uri,
+    this.adsUri,
     this.formatHint,
     this.asset,
     this.package,
@@ -243,6 +244,7 @@ class DataSource {
   /// This will be in different formats depending on the [DataSourceType] of
   /// the original video.
   final String? uri;
+  final String? adsUri;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
@@ -326,7 +328,7 @@ class DataSource {
 
   @override
   String toString() {
-    return 'DataSource{sourceType: $sourceType, uri: $uri certificateUrl: $certificateUrl, formatHint:'
+    return 'DataSource{sourceType: $sourceType, uri: $uri certificateUrl: $certificateUrl,ads_uri: $adsUri, formatHint:'
         ' $formatHint, asset: $asset, package: $package, headers: $headers,'
         ' useCache: $useCache,maxCacheSize: $maxCacheSize, maxCacheFileSize: '
         '$maxCacheFileSize, showNotification: $showNotification, title: $title,'

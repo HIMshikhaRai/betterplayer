@@ -336,6 +336,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// ClearKey DRM only supported on Android.
   Future<void> setNetworkDataSource(
     String dataSource, {
+      String? adsUrl,
     VideoFormat? formatHint,
     Map<String, String?>? headers,
     bool useCache = false,
@@ -359,6 +360,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       DataSource(
         sourceType: DataSourceType.network,
         uri: dataSource,
+        adsUri: adsUrl,
         formatHint: formatHint,
         headers: headers,
         useCache: useCache,

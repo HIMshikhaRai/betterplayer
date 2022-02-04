@@ -217,6 +217,7 @@ class BetterPlayerDataSource {
   BetterPlayerDataSource copyWith({
     BetterPlayerDataSourceType? type,
     String? url,
+    String? adsUrl,
     List<int>? bytes,
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? liveStream,
@@ -239,6 +240,7 @@ class BetterPlayerDataSource {
     return BetterPlayerDataSource(
       type ?? this.type,
       url ?? this.url,
+      adsUrl: adsUrl ?? this.adsUrl,
       bytes: bytes ?? this.bytes,
       subtitles: subtitles ?? this.subtitles,
       liveStream: liveStream ?? this.liveStream,

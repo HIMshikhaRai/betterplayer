@@ -270,7 +270,7 @@ class BetterPlayerController {
       _setupSubtitles();
     }
 
-    ///Process data source
+    ///Process data so
     await _setupDataSource(betterPlayerDataSource);
     setTrack(BetterPlayerAsmsTrack.defaultTrack());
   }
@@ -443,6 +443,7 @@ class BetterPlayerController {
       case BetterPlayerDataSourceType.network:
         await videoPlayerController?.setNetworkDataSource(
           betterPlayerDataSource.url,
+          adsUrl: betterPlayerDataSource.adsUrl,
           headers: _getHeaders(),
           useCache:
               _betterPlayerDataSource!.cacheConfiguration?.useCache ?? false,
@@ -950,21 +951,21 @@ class BetterPlayerController {
   }
 
   ///Set different resolution (quality) for video
-  void setResolution(String url) async {
+  void setResolution(String url, String? adsUrl) async {
     if (videoPlayerController == null) {
       throw StateError("The data source has not been initialized");
     }
     final position = await videoPlayerController!.position;
     final wasPlayingBeforeChange = isPlaying()!;
     pause();
-    await setupDataSource(betterPlayerDataSource!.copyWith(url: url));
+    await setupDataSource(betterPlayerDataSource!.copyWith(url: url,adsUrl: adsUrl));
     seekTo(position!);
     if (wasPlayingBeforeChange) {
       play();
     }
     _postEvent(BetterPlayerEvent(
       BetterPlayerEventType.changedResolution,
-      parameters: <String, dynamic>{"url": url},
+      parameters: <String, dynamic>{"url": url, "ads_uri": adsUrl},
     ));
   }
 
@@ -1255,6 +1256,7 @@ class BetterPlayerController {
     final dataSource = DataSource(
       sourceType: DataSourceType.network,
       uri: betterPlayerDataSource.url,
+      adsUri: betterPlayerDataSource.adsUrl,
       useCache: true,
       headers: betterPlayerDataSource.headers,
       maxCacheSize: cacheConfig.maxCacheSize,
