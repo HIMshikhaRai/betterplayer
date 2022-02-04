@@ -240,7 +240,7 @@ internal class BetterPlayer(
         } else {
             dataSourceFactory = DefaultDataSourceFactory(context, userAgent)
         }
-        val mediaSource = buildMediaSource(uri, adsUri, dataSourceFactory, formatHint, cacheKey, context)
+        buildMediaSource(uri, adsUri, dataSourceFactory, formatHint, cacheKey, context)
 //        if (overriddenDuration != 0L) {
 //            val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
 //            exoPlayer!!.setMediaSource(clippingMediaSource)
@@ -492,7 +492,7 @@ internal class BetterPlayer(
         formatHint: String?,
         cacheKey: String?,
         context: Context
-    ): MediaSource {
+    ) {
 //        val type: Int
         @C.ContentType val type: Int = Util.inferContentType(uri, null)
 
@@ -525,9 +525,8 @@ internal class BetterPlayer(
         if (drmSessionManager != null) {
             drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager!! }
         }
-        exoPlayer?.setMediaItem(mediaItem)
         exoPlayer?.playWhenReady = true
-        return when (type) {
+        val mediaSource = when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
                 DefaultSsChunkSource.Factory(mediaDataSourceFactory),
                 DefaultDataSourceFactory(context, null, mediaDataSourceFactory)
@@ -553,6 +552,9 @@ internal class BetterPlayer(
                 throw IllegalStateException("Unsupported type: $type")
             }
         }
+        exoPlayer?.setMediaSource(mediaSource)
+        exoPlayer?.setMediaItem(mediaItem)
+
     }
 
     private fun buildRtmp(): DataSource.Factory{
