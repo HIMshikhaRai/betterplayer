@@ -19,7 +19,11 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.Observer
 import androidx.media.session.MediaButtonReceiver
@@ -59,7 +63,6 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry
-import com.jhomlala.better_player.NerdStatHelper
 import java.io.File
 import java.util.*
 import kotlin.math.max
@@ -92,7 +95,7 @@ internal class BetterPlayer(
     private val customDefaultLoadControl: CustomDefaultLoadControl =
         customDefaultLoadControl ?: CustomDefaultLoadControl()
     private var lastSendBufferedPosition = 0L
-//    var nerdStatHelper: NerdStatHelper? = null
+    var nerdStatHelper: NerdStatHelper? = null
 
     init {
         val loadBuilder = DefaultLoadControl.Builder()
@@ -123,11 +126,14 @@ internal class BetterPlayer(
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { unusedAdTagUri: MediaItem.AdsConfiguration? -> adsLoader }
             .setAdViewProvider{
-                val imgLayout = FrameLayout(activity!!)
-                val lp: FrameLayout.LayoutParams =
-                    FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-                imgLayout.layoutParams = lp
-                imgLayout
+
+//                val imgLayout = LinearLayout(activity!!)
+//                val lp: LinearLayout.LayoutParams =
+//                    LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+//                imgLayout.layoutParams = lp
+                val view = activity!!.findViewById(android.R.id.content) as ViewGroup
+//                view.addView(imgLayout)
+                view
             }
 
         exoPlayer = SimpleExoPlayer.Builder(context)
@@ -141,15 +147,15 @@ internal class BetterPlayer(
 
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
-//        nerdStatHelper = NerdStatHelper(
-//            exoPlayer,
-//            TextView(context),
-//            eventSink,
-//            exoPlayer.getCurrentTrackSelections(),
-//            DefaultTrackNameProvider(context.getResources()),
-//            context
-//        )
-//        nerdStatHelper?.init()
+        nerdStatHelper = NerdStatHelper(
+            exoPlayer,
+            TextView(context),
+            eventSink,
+            exoPlayer.getCurrentTrackSelections(),
+            DefaultTrackNameProvider(context.getResources()),
+            context
+        )
+        nerdStatHelper?.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
     }
 
