@@ -18,20 +18,19 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.util.TypedValue
 import android.view.Surface
-import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.media.session.MediaButtonReceiver
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.google.ads.interactivemedia.v3.api.AdErrorEvent
 import com.google.ads.interactivemedia.v3.api.AdEvent
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -40,7 +39,9 @@ import com.google.android.exoplayer2.ext.ima.ImaAdsLoader
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.rtmp.RtmpDataSource
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
-import com.google.android.exoplayer2.source.*
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
+import com.google.android.exoplayer2.source.MediaSourceFactory
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
@@ -68,6 +69,7 @@ import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
+
 internal class BetterPlayer(
     context: Context,
     private val eventChannel: EventChannel,
@@ -76,7 +78,7 @@ internal class BetterPlayer(
     result: MethodChannel.Result,
     activity: Activity?
 ) {
-    private val exoPlayer: SimpleExoPlayer?
+    private val exoPlayer: SimpleExoPlayer
     private val eventSink = QueuingEventSink()
     private val trackSelector: DefaultTrackSelector = DefaultTrackSelector(context)
     private val loadControl: LoadControl
@@ -96,7 +98,7 @@ internal class BetterPlayer(
         customDefaultLoadControl ?: CustomDefaultLoadControl()
     private var lastSendBufferedPosition = 0L
     var nerdStatHelper: NerdStatHelper? = null
-
+    val adsMediaSourceFactory : MediaSourceFactory? = null
     init {
         val loadBuilder = DefaultLoadControl.Builder()
         loadBuilder.setBufferDurationsMs(
@@ -106,35 +108,39 @@ internal class BetterPlayer(
             this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs
         )
         loadControl = loadBuilder.build()
-
+        surface = Surface(textureEntry.surfaceTexture())
 
         val adsLoader =
-            ImaAdsLoader.Builder(context).setAdEventListener(AdEvent.AdEventListener { adEvent: AdEvent ->
-                val AdsTAG = "CheckingAdError"
-                Log.d(
-                    AdsTAG,
-                    adEvent.getType().name
-                )
-            }).setFocusSkipButtonWhenAvailable(true).setAdErrorListener { adError: AdErrorEvent ->
-                Log.e(
-                    "CheckingAdError",
-                    adError.error.stackTraceToString()
-                )
+            ImaAdsLoader.Builder(context).setAdEventListener { adEvent ->
+                if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
+                    || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
+                    val androidView = activity!!.findViewById<ViewGroup>(android.R.id.content)
+
+                    androidView.layoutParams.height = MATCH_PARENT
+                    androidView
+                }
             }.build()
         val dataSourceFactory: DataSource.Factory =
             DefaultDataSourceFactory(context, "Livetv")
+
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { unusedAdTagUri: MediaItem.AdsConfiguration? -> adsLoader }
             .setAdViewProvider{
+                val imgLayout = FrameLayout(activity!!)
+                val statusBarHeight =
+                    Math.ceil((25 * context.resources.displayMetrics.density).toDouble()).toInt()
 
-//                val imgLayout = LinearLayout(activity!!)
-//                val lp: LinearLayout.LayoutParams =
-//                    LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-//                imgLayout.layoutParams = lp
+                val width =  activity.resources.displayMetrics.widthPixels
+               val height =  (activity.resources.displayMetrics.widthPixels / 1.7777777778).toInt() + statusBarHeight
+                val lp: FrameLayout.LayoutParams =
+                    FrameLayout.LayoutParams(width, height)
+                imgLayout.layoutParams = lp
                 val view = activity!!.findViewById(android.R.id.content) as ViewGroup
-//                view.addView(imgLayout)
-                view
+                view.addView(imgLayout)
+                imgLayout.bringToFront()
+                imgLayout
             }
+
 
         exoPlayer = SimpleExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
@@ -143,8 +149,6 @@ internal class BetterPlayer(
             .build()
 
         adsLoader.setPlayer(exoPlayer)
-
-
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
         nerdStatHelper = NerdStatHelper(
@@ -253,6 +257,8 @@ internal class BetterPlayer(
 //        } else {
 //            exoPlayer!!.setMediaSource(mediaSource)
 //        }
+
+
         exoPlayer?.prepare()
         exoPlayer?.playWhenReady = true
         result.success(null)
@@ -531,6 +537,7 @@ internal class BetterPlayer(
         if (drmSessionManager != null) {
             drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager!! }
         }
+
         exoPlayer?.playWhenReady = true
         val mediaSource = when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
@@ -581,7 +588,6 @@ internal class BetterPlayer(
                     eventSink.setDelegate(null)
                 }
             })
-        surface = Surface(textureEntry.surfaceTexture())
         exoPlayer!!.setVideoSurface(surface)
         setAudioAttributes(exoPlayer, true)
         exoPlayer.addListener(object : Player.Listener {
@@ -743,11 +749,11 @@ internal class BetterPlayer(
         val mediaButtonReceiver = ComponentName(context!!, MediaButtonReceiver::class.java)
         val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
         val pendingIntent = PendingIntent.getBroadcast(
-            context!!,
+            context,
             0, mediaButtonIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
-        val mediaSession = MediaSessionCompat(context!!, TAG, null, pendingIntent)
+        val mediaSession = MediaSessionCompat(context, TAG, null, pendingIntent)
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
             override fun onSeekTo(pos: Long) {
                 sendSeekToEvent(pos)
