@@ -76,7 +76,7 @@ internal class BetterPlayer(
     private val textureEntry: SurfaceTextureEntry,
     customDefaultLoadControl: CustomDefaultLoadControl?,
     result: MethodChannel.Result,
-    activity: Activity?
+    act: Activity
 ) {
     private val exoPlayer: SimpleExoPlayer
     private val eventSink = QueuingEventSink()
@@ -97,6 +97,9 @@ internal class BetterPlayer(
     private val customDefaultLoadControl: CustomDefaultLoadControl =
         customDefaultLoadControl ?: CustomDefaultLoadControl()
     private var lastSendBufferedPosition = 0L
+    private val adsLayout = FrameLayout(act)
+    private val activity = act
+    private var isAdPlay = false
     var nerdStatHelper: NerdStatHelper? = null
     val adsMediaSourceFactory : MediaSourceFactory? = null
     init {
@@ -114,10 +117,9 @@ internal class BetterPlayer(
             ImaAdsLoader.Builder(context).setAdEventListener { adEvent ->
                 if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
                     || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
-                    val androidView = activity!!.findViewById<ViewGroup>(android.R.id.content)
-
-                    androidView.layoutParams.height = MATCH_PARENT
-                    androidView
+                  isAdPlay = false
+                } else if(adEvent.type == AdEvent.AdEventType.STARTED || adEvent.type == AdEvent.AdEventType.LOADED){
+                    isAdPlay = true
                 }
             }.build()
         val dataSourceFactory: DataSource.Factory =
@@ -126,19 +128,18 @@ internal class BetterPlayer(
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { unusedAdTagUri: MediaItem.AdsConfiguration? -> adsLoader }
             .setAdViewProvider{
-                val imgLayout = FrameLayout(activity!!)
                 val statusBarHeight =
                     Math.ceil((25 * context.resources.displayMetrics.density).toDouble()).toInt()
 
                 val width =  activity.resources.displayMetrics.widthPixels
-               val height =  (activity.resources.displayMetrics.widthPixels / 1.7777777778).toInt() + statusBarHeight
+                val height =  (activity.resources.displayMetrics.widthPixels / 1.7777777778).toInt() + statusBarHeight
                 val lp: FrameLayout.LayoutParams =
                     FrameLayout.LayoutParams(width, height)
-                imgLayout.layoutParams = lp
-                val view = activity!!.findViewById(android.R.id.content) as ViewGroup
-                view.addView(imgLayout)
-                imgLayout.bringToFront()
-                imgLayout
+                adsLayout.layoutParams = lp
+                val view = activity.findViewById(android.R.id.content) as ViewGroup
+                view.addView(adsLayout)
+                adsLayout.bringToFront()
+                adsLayout
             }
 
 
@@ -161,6 +162,19 @@ internal class BetterPlayer(
         )
         nerdStatHelper?.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
+    }
+
+    fun removeAdsView(){
+        val view = activity!!.findViewById(android.R.id.content) as ViewGroup
+        if (adsLayout != null) {
+            isAdPlay = false
+            view.removeView(adsLayout)
+        }
+    }
+
+    fun isAdPlaying(): Boolean {
+        Log.e("isAdPlay", isAdPlay.toString())
+        return isAdPlay
     }
 
     fun setDataSource(

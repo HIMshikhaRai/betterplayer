@@ -456,6 +456,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlayPause();
   }
 
+  Future<void> disposeAdView() async {
+    await _videoPlayerPlatform.disposeAdView(_textureId);
+  }
+
+  Future<bool?> isAdPlaying() async {
+    return await _videoPlayerPlatform.isAdPlaying(_textureId);
+  }
+
   /// Sets whether or not the video should loop after playing once. See also
   /// [VideoPlayerValue.isLooping].
   Future<void> setLooping(bool looping) async {

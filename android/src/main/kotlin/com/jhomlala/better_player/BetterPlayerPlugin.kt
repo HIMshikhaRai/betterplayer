@@ -26,6 +26,7 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.view.TextureRegistry
 import java.lang.Exception
 import java.util.HashMap
+import android.view.ViewGroup
 
 /**
  * Android platform implementation of the VideoPlayerPlugin.
@@ -117,7 +118,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 }
                 val player = BetterPlayer(
                     flutterState!!.applicationContext, eventChannel, handle,
-                    customDefaultLoadControl, result, activity
+                    customDefaultLoadControl, result, activity!!
                 )
                 videoPlayers.put(handle.id(), player)
             }
@@ -218,6 +219,11 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
             DISPOSE_METHOD -> {
                 dispose(player, textureId)
+                result.success(null)
+            }
+            DISPOSE_AD_VIEW -> disposeAdView(player)
+            IS_AD_PLAYING -> {
+                isAdPlaying(player)
                 result.success(null)
             }
             else -> result.notImplemented()
@@ -403,6 +409,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         return defaultValue
     }
 
+    private fun isAdPlaying(player: BetterPlayer): Boolean {
+        return player.isAdPlaying()
+    }
+
 
     private fun isPictureInPictureSupported(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity != null && activity!!.packageManager
@@ -446,6 +456,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         videoPlayers.remove(textureId)
         dataSources.remove(textureId)
         stopPipHandler()
+    }
+
+    private fun disposeAdView(player: BetterPlayer) {
+        player.removeAdsView()
     }
 
     private fun stopPipHandler() {
@@ -549,5 +563,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val DISPOSE_METHOD = "dispose"
         private const val PRE_CACHE_METHOD = "preCache"
         private const val STOP_PRE_CACHE_METHOD = "stopPreCache"
+        private const val DISPOSE_AD_VIEW = "disposeAdView"
+        private const val IS_AD_PLAYING = "isAdPlaying"
     }
 }

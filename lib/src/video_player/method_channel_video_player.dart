@@ -154,6 +154,24 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> disposeAdView(int? textureId) {
+    return _channel.invokeMethod<void>(
+      'disposeAdView',
+      <String, dynamic>{'textureId': textureId},
+    );
+  }
+
+  @override
+  Future<bool?> isAdPlaying(int? textureId) async{
+    return await _channel.invokeMethod<bool>(
+      'isAdPlaying',
+      <String, dynamic>{
+        'textureId': textureId,
+      },
+    );
+  }
+
+  @override
   Future<void> setVolume(int? textureId, double volume) {
     return _channel.invokeMethod<void>(
       'setVolume',
