@@ -223,8 +223,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
             DISPOSE_AD_VIEW -> disposeAdView(player)
             IS_AD_PLAYING -> {
-                isAdPlaying(player)
-                result.success(null)
+                result.success(isAdPlaying(player))
             }
             else -> result.notImplemented()
         }

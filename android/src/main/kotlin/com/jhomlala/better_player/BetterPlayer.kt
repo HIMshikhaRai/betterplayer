@@ -118,9 +118,14 @@ internal class BetterPlayer(
                 if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
                     || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
                   isAdPlay = false
+                    removeAdsView()
                 } else if(adEvent.type == AdEvent.AdEventType.STARTED || adEvent.type == AdEvent.AdEventType.LOADED){
                     isAdPlay = true
+                } else if(adEvent.type == AdEvent.AdEventType.AD_BREAK_FETCH_ERROR){
+                    removeAdsView()
                 }
+            }.setAdErrorListener{ adError ->
+                removeAdsView()
             }.build()
         val dataSourceFactory: DataSource.Factory =
             DefaultDataSourceFactory(context, "Livetv")
