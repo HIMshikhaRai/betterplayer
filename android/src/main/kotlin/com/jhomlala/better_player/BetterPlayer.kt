@@ -117,11 +117,12 @@ internal class BetterPlayer(
             ImaAdsLoader.Builder(context).setAdEventListener { adEvent ->
                 if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
                     || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
-                  isAdPlay = false
-                    removeAdsView()
+                    isAdPlay = false
+//                    removeAdsView()
                 } else if(adEvent.type == AdEvent.AdEventType.STARTED || adEvent.type == AdEvent.AdEventType.LOADED){
                     isAdPlay = true
                 } else if(adEvent.type == AdEvent.AdEventType.AD_BREAK_FETCH_ERROR){
+                    isAdPlay = false
                     removeAdsView()
                 }
             }.setAdErrorListener{ adError ->
@@ -175,6 +176,7 @@ internal class BetterPlayer(
             isAdPlay = false
             view.removeView(adsLayout)
         }
+//        sendInitialized()
     }
 
     fun isAdPlaying(): Boolean {
@@ -677,11 +679,11 @@ internal class BetterPlayer(
     }
 
     fun play() {
-        exoPlayer!!.playWhenReady = true
+        exoPlayer?.play()
     }
 
     fun pause() {
-        exoPlayer!!.playWhenReady = true
+        exoPlayer?.pause()
     }
 
     fun setLooping(value: Boolean) {
