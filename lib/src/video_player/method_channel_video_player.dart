@@ -171,6 +171,7 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
     );
   }
 
+
   @override
   Future<void> setVolume(int? textureId, double volume) {
     return _channel.invokeMethod<void>(
@@ -227,6 +228,18 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             ) ??
             0);
   }
+
+  @override
+  Future<Duration> contentDuration(int? textureId) async{
+    return Duration(
+        milliseconds: await _channel.invokeMethod<int>(
+          'contentDuration',
+          <String, dynamic>{'textureId': textureId},
+        ) ??
+            -1);
+
+  }
+
 
   @override
   Future<DateTime?> getAbsolutePosition(int? textureId) async {
