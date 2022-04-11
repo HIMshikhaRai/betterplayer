@@ -468,6 +468,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return await _videoPlayerPlatform.contentDuration(_textureId);
   }
 
+  Future<Duration?> contentPosition() async {
+    return await _videoPlayerPlatform.contentPosition(_textureId);
+  }
+
   /// Sets whether or not the video should loop after playing once. See also
   /// [VideoPlayerValue.isLooping].
   Future<void> setLooping(bool looping) async {

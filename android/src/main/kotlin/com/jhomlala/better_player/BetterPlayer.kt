@@ -118,14 +118,17 @@ internal class BetterPlayer(
                 if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
                     || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
                     isAdPlay = false
+                    isInitialized = false
                     removeAdsView()
                 } else if(adEvent.type == AdEvent.AdEventType.STARTED || adEvent.type == AdEvent.AdEventType.LOADED){
                     isAdPlay = true
                 } else if(adEvent.type == AdEvent.AdEventType.AD_BREAK_FETCH_ERROR){
                     isAdPlay = false
+                    isInitialized = false
                     removeAdsView()
                 }
             }.setAdErrorListener{ adError ->
+                isInitialized = false
                 removeAdsView()
             }.build()
         val dataSourceFactory: DataSource.Factory =
@@ -184,6 +187,10 @@ internal class BetterPlayer(
 
     fun contentDuration(): Long{
         return exoPlayer?.duration
+    }
+
+    fun contentPosition(): Long {
+        return exoPlayer?.contentPosition
     }
 
     fun setDataSource(
@@ -721,6 +728,7 @@ internal class BetterPlayer(
     }
 
     fun seekTo(location: Int) {
+        Log.e("location-a-sfd-f-fds-", location.toString())
         exoPlayer!!.seekTo(location.toLong())
     }
 

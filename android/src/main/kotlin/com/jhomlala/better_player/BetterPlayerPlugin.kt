@@ -228,6 +228,9 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             CONTENT_DURATION -> {
                 result.success(contentDuration(player))
             }
+            CONTENT_POSITION -> {
+                result.success(contentPosition(player))
+            }
 
             else -> result.notImplemented()
         }
@@ -420,6 +423,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         return player.contentDuration()
     }
 
+    private fun contentPosition(player: BetterPlayer) : Long {
+        return player.contentPosition()
+    }
+
 
     private fun isPictureInPictureSupported(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity != null && activity!!.packageManager
@@ -573,5 +580,6 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val DISPOSE_AD_VIEW = "disposeAdView"
         private const val IS_AD_PLAYING = "isAdPlaying"
         private const val CONTENT_DURATION = "contentDuration"
+        private const val CONTENT_POSITION = "contentPosition"
     }
 }
