@@ -223,9 +223,12 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
             DISPOSE_AD_VIEW -> disposeAdView(player)
             IS_AD_PLAYING -> {
-                isAdPlaying(player)
-                result.success(null)
+                result.success(isAdPlaying(player))
             }
+            CONTENT_DURATION -> {
+                result.success(contentDuration(player))
+            }
+
             else -> result.notImplemented()
         }
     }
@@ -413,6 +416,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         return player.isAdPlaying()
     }
 
+    private fun contentDuration(player: BetterPlayer) : Long{
+        return player.contentDuration()
+    }
+
 
     private fun isPictureInPictureSupported(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity != null && activity!!.packageManager
@@ -565,5 +572,6 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val STOP_PRE_CACHE_METHOD = "stopPreCache"
         private const val DISPOSE_AD_VIEW = "disposeAdView"
         private const val IS_AD_PLAYING = "isAdPlaying"
+        private const val CONTENT_DURATION = "contentDuration"
     }
 }

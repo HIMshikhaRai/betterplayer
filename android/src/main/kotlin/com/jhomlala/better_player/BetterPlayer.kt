@@ -78,7 +78,7 @@ internal class BetterPlayer(
     result: MethodChannel.Result,
     act: Activity
 ) {
-    private val exoPlayer: SimpleExoPlayer
+    val exoPlayer: SimpleExoPlayer
     private val eventSink = QueuingEventSink()
     private val trackSelector: DefaultTrackSelector = DefaultTrackSelector(context)
     private val loadControl: LoadControl
@@ -117,10 +117,16 @@ internal class BetterPlayer(
             ImaAdsLoader.Builder(context).setAdEventListener { adEvent ->
                 if(adEvent.type == AdEvent.AdEventType.AD_BREAK_ENDED
                     || adEvent.type == AdEvent.AdEventType.COMPLETED || adEvent.type == AdEvent.AdEventType.SKIPPED){
-                  isAdPlay = false
+                    isAdPlay = false
+                    removeAdsView()
                 } else if(adEvent.type == AdEvent.AdEventType.STARTED || adEvent.type == AdEvent.AdEventType.LOADED){
                     isAdPlay = true
+                } else if(adEvent.type == AdEvent.AdEventType.AD_BREAK_FETCH_ERROR){
+                    isAdPlay = false
+                    removeAdsView()
                 }
+            }.setAdErrorListener{ adError ->
+                removeAdsView()
             }.build()
         val dataSourceFactory: DataSource.Factory =
             DefaultDataSourceFactory(context, "Livetv")
@@ -173,8 +179,11 @@ internal class BetterPlayer(
     }
 
     fun isAdPlaying(): Boolean {
-        Log.e("isAdPlay", isAdPlay.toString())
         return isAdPlay
+    }
+
+    fun contentDuration(): Long{
+        return exoPlayer?.duration
     }
 
     fun setDataSource(
@@ -552,7 +561,6 @@ internal class BetterPlayer(
             drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager!! }
         }
 
-        exoPlayer?.playWhenReady = true
         val mediaSource = when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
                 DefaultSsChunkSource.Factory(mediaDataSourceFactory),
@@ -581,6 +589,8 @@ internal class BetterPlayer(
         }
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.setMediaItem(mediaItem)
+        exoPlayer?.playWhenReady = true
+
 
     }
 
@@ -614,10 +624,10 @@ internal class BetterPlayer(
                         eventSink.success(event)
                     }
                     Player.STATE_READY -> {
-                        if (!isInitialized) {
-                            isInitialized = true
-                            sendInitialized()
-                        }
+                            if (!isInitialized) {
+                                isInitialized = true
+                                sendInitialized()
+                            }
                         val event: MutableMap<String, Any> = HashMap()
                         event["event"] = "bufferingEnd"
                         eventSink.success(event)
@@ -672,11 +682,11 @@ internal class BetterPlayer(
     }
 
     fun play() {
-        exoPlayer!!.playWhenReady = true
+        exoPlayer?.play()
     }
 
     fun pause() {
-        exoPlayer!!.playWhenReady = true
+        exoPlayer?.pause()
     }
 
     fun setLooping(value: Boolean) {
