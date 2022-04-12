@@ -1175,6 +1175,12 @@ class BetterPlayerController {
               "nerdStat": event.nerdStat,
             }));
         break;
+      case VideoEventType.adStarted:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.adStarted));
+        break;
+      case VideoEventType.adEnded:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.adEnded));
+        break;
       default:
 
         ///TODO: Handle when needed

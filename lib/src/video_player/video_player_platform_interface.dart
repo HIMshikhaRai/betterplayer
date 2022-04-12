@@ -492,6 +492,9 @@ enum VideoEventType {
   unknown,
 
   nerdStat,
+
+  adStarted,
+  adEnded,
 }
 
 /// Describes a discrete segment of time within a video using a [start] and

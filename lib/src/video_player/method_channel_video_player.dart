@@ -466,6 +466,16 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
               key: key,
               nerdStat: values);
 
+        case 'adStarted':
+          return VideoEvent(
+              eventType: VideoEventType.adStarted,
+              key: key);
+
+        case 'adEnded':
+          return VideoEvent(
+              eventType: VideoEventType.adEnded,
+              key: key);
+
         default:
           return VideoEvent(
             eventType: VideoEventType.unknown,
