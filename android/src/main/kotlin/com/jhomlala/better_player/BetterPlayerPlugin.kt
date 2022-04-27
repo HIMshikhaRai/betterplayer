@@ -231,6 +231,14 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             CONTENT_POSITION -> {
                 result.success(contentPosition(player))
             }
+            START_NERD_STAT -> {
+                player.startNerdStat = !player.startNerdStat
+                if (player.startNerdStat) {
+                    player.nerdStatHelper?.init()
+                } else {
+                    player.nerdStatHelper?.onStop()
+                }
+            }
 
             else -> result.notImplemented()
         }
@@ -581,5 +589,6 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val IS_AD_PLAYING = "isAdPlaying"
         private const val CONTENT_DURATION = "contentDuration"
         private const val CONTENT_POSITION = "contentPosition"
+        private const val START_NERD_STAT = "startNerdStat"
     }
 }

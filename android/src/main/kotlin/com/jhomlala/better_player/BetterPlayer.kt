@@ -100,6 +100,7 @@ internal class BetterPlayer(
     private val adsLayout = FrameLayout(act)
     private val activity = act
     private var isAdPlay = false
+    var startNerdStat = false
     var nerdStatHelper: NerdStatHelper? = null
     val adsMediaSourceFactory : MediaSourceFactory? = null
     init {
@@ -169,7 +170,6 @@ internal class BetterPlayer(
             DefaultTrackNameProvider(context.getResources()),
             context
         )
-        nerdStatHelper?.init()
         setupVideoPlayer(eventChannel, textureEntry, result)
     }
 
