@@ -27,6 +27,16 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> startNerdStat(int? textureId) async{
+    return await _channel.invokeMethod<void>(
+      'startNerdStat',
+      <String, dynamic>{
+        'textureId': textureId,
+      },
+    );
+  }
+
+  @override
   Future<int?> create({
     BetterPlayerBufferingConfiguration? bufferingConfiguration,
   }) async {

@@ -336,7 +336,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// ClearKey DRM only supported on Android.
   Future<void> setNetworkDataSource(
     String dataSource, {
-      String? adsUrl,
+    String? adsUrl,
     VideoFormat? formatHint,
     Map<String, String?>? headers,
     bool useCache = false,
@@ -462,6 +462,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   Future<bool?> isAdPlaying() async {
     return await _videoPlayerPlatform.isAdPlaying(_textureId);
+  }
+
+  Future<void> startNerdStat() async {
+    return await _videoPlayerPlatform.startNerdStat(_textureId);
   }
 
   Future<Duration?> contentDuration() async {

@@ -48,6 +48,7 @@ class NerdStatHelper(
     fun init() {
         exoPlayer.addAnalyticsListener(this)
         start()
+        statsHandler.postDelayed(statsRunnable, 1000)
     }
 
     fun onStop() {
@@ -104,7 +105,7 @@ class NerdStatHelper(
 
     override fun onPlaybackStateChanged(eventTime: EventTime, state: Int) {
         if (Player.STATE_READY == state) {
-            statsHandler.postDelayed(statsRunnable, 1000)
+//            statsHandler.postDelayed(statsRunnable, 1000)
         }
     }
 
