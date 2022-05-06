@@ -21,6 +21,7 @@ AVPictureInPictureController *_pipController;
 
 @implementation BetterPlayer {
     NSTimer *nerdStatTimer;
+    BOOL nerdStatActive;
 }
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super init];
@@ -46,13 +47,22 @@ AVPictureInPictureController *_pipController;
         _player.automaticallyWaitsToMinimizeStalling = false;
     }
     
-    nerdStatTimer = [NSTimer scheduledTimerWithTimeInterval: 2.0
+    self._observersAdded = false;
+    return self;
+}
+
+-(void)toggleNerdStat {
+    if (nerdStatActive == TRUE) {
+        [nerdStatTimer invalidate];
+        nerdStatTimer = nil;
+        nerdStatActive = FALSE;
+    } else {
+        nerdStatTimer = [NSTimer scheduledTimerWithTimeInterval: 2.0
                           target: self
                           selector:@selector(nerdStat:)
                           userInfo: nil repeats:YES];
-    
-    self._observersAdded = false;
-    return self;
+        nerdStatActive = TRUE;
+    }
 }
 
 -(void)nerdStat:(NSTimer *)timer {
