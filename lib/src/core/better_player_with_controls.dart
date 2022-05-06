@@ -146,8 +146,8 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
             playerVisibilityStream: playerVisibilityStreamController.stream,
           ),
           if (!placeholderOnTop) _buildPlaceholder(betterPlayerController),
-          // commented for resolving ads touch issue for ios (it removes the player controller)
-          // _buildControls(context, betterPlayerController),
+          // comment for resolving ads touch issue for ios (it removes the player controller)
+          _buildControls(context, betterPlayerController),
         ],
       ),
     );
