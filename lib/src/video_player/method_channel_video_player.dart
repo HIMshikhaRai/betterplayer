@@ -37,6 +37,26 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> startAnalytics(int? textureId) async{
+    return await _channel.invokeMethod<void>(
+      'startAnalytics',
+      <String, dynamic>{
+        'textureId': textureId,
+      },
+    );
+  }
+
+  @override
+  Future<void> stopAnalytics(int? textureId) async{
+    return await _channel.invokeMethod<void>(
+      'stopAnalytics',
+      <String, dynamic>{
+        'textureId': textureId,
+      },
+    );
+  }
+
+  @override
   Future<int?> create({
     BetterPlayerBufferingConfiguration? bufferingConfiguration,
   }) async {
@@ -485,6 +505,12 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           return VideoEvent(
               eventType: VideoEventType.adEnded,
               key: key);
+
+        case 'bitrateUpdate':
+          return VideoEvent(
+              eventType: VideoEventType.bitrateUpdate,
+              key: key,
+              bitrate: map["bitrate"]);
 
         default:
           return VideoEvent(

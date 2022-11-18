@@ -273,6 +273,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.nerdStat:
           value = value.copyWith(isPip: false, nerdStatValue: event.nerdStat);
           break;
+          case VideoEventType.bitrateUpdate:
+            value = value.copyWith(bitrate: event.bitrate);
+          break;
       }
     }
 
@@ -474,6 +477,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   Future<Duration?> contentPosition() async {
     return await _videoPlayerPlatform.contentPosition(_textureId);
+  }
+
+  Future<void> startAnalytics() async {
+    return await _videoPlayerPlatform.startAnalytics(_textureId);
+  }
+
+  Future<void> stopAnalytics() async {
+    return await _videoPlayerPlatform.stopAnalytics(_textureId);
   }
 
   /// Sets whether or not the video should loop after playing once. See also

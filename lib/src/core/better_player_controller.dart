@@ -1181,6 +1181,12 @@ class BetterPlayerController {
       case VideoEventType.adEnded:
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.adEnded));
         break;
+        case VideoEventType.bitrateUpdate:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.bitrateUpdate,
+            parameters: <String, dynamic>{
+              "bitrate": event.bitrate,
+            }));
+        break;
       default:
 
         ///TODO: Handle when needed

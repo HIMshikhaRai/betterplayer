@@ -129,6 +129,16 @@ abstract class VideoPlayerPlatform {
     throw UnimplementedError('startNerdStat() has not been implemented.');
   }
 
+  ///start analytics
+  Future<void> startAnalytics(int? textureId) {
+    throw UnimplementedError('startAnalytics() has not been implemented.');
+  }
+
+  ///stop analytics
+  Future<void> stopAnalytics(int? textureId) {
+    throw UnimplementedError('stopAnalytics() has not been implemented.');
+  }
+
   /// Sets the volume to a range between 0.0 and 1.0.
   Future<void> setVolume(int? textureId, double volume) {
     throw UnimplementedError('setVolume() has not been implemented.');
@@ -500,6 +510,7 @@ enum VideoEventType {
 
   adStarted,
   adEnded,
+  bitrateUpdate
 }
 
 /// Describes a discrete segment of time within a video using a [start] and

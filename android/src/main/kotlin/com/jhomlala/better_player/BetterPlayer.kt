@@ -68,7 +68,9 @@ import java.io.File
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
-
+import android.R.attr.bitmap
+import com.google.android.exoplayer2.analytics.AnalyticsListener
+import com.google.android.exoplayer2.analytics.AnalyticsListener.EventTime
 
 internal class BetterPlayer(
     context: Context,
@@ -77,7 +79,7 @@ internal class BetterPlayer(
     customDefaultLoadControl: CustomDefaultLoadControl?,
     result: MethodChannel.Result,
     act: Activity
-) {
+) : AnalyticsListener {
     val exoPlayer: SimpleExoPlayer
     private val eventSink = QueuingEventSink()
     private val trackSelector: DefaultTrackSelector = DefaultTrackSelector(context)
@@ -998,4 +1000,27 @@ internal class BetterPlayer(
         }
     }
 
+    fun startAnalytics() {
+        exoPlayer.addAnalyticsListener(this)
+    }
+
+    override fun onBandwidthEstimate(
+        eventTime: EventTime,
+        totalLoadTimeMs: Int,
+        totalBytesLoaded: Long,
+        bitrateEstimate: Long
+    ) {
+        sendBitrateEvent("bitrateUpdate", bitrateEstimate.toInt())
+    }
+
+    fun stopAnalytics() {
+        exoPlayer.removeAnalyticsListener(this)
+    }
+
+    private fun sendBitrateEvent(eventType: String, bitrateValue: Int) {
+        val event: MutableMap<String, Any> = HashMap()
+        event["event"] = eventType
+        event["bitrate"] = bitrateValue
+        eventSink.success(event)
+    }
 }

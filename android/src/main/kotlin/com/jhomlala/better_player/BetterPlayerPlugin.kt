@@ -239,6 +239,12 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                     player.nerdStatHelper?.onStop()
                 }
             }
+            START_ANALYTICS -> {
+                player.startAnalytics()
+            }
+            STOP_ANALYTICS -> {
+                player.stopAnalytics()
+            }
 
             else -> result.notImplemented()
         }
@@ -590,5 +596,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val CONTENT_DURATION = "contentDuration"
         private const val CONTENT_POSITION = "contentPosition"
         private const val START_NERD_STAT = "startNerdStat"
+        private const val START_ANALYTICS = "startAnalytics"
+        private const val STOP_ANALYTICS = "stopAnalytics"
     }
 }
