@@ -129,6 +129,16 @@ abstract class VideoPlayerPlatform {
     throw UnimplementedError('startNerdStat() has not been implemented.');
   }
 
+  ///playWhenReadyTrue
+  Future<void> playWhenReadyTrue(int? textureId) {
+    throw UnimplementedError('playWhenReadyTrue() has not been implemented.');
+  }
+
+  ///playWhenReadyFalse
+  Future<void> playWhenReadyFalse(int? textureId) {
+    throw UnimplementedError('playWhenReadyFalse() has not been implemented.');
+  }
+
   /// Sets the volume to a range between 0.0 and 1.0.
   Future<void> setVolume(int? textureId, double volume) {
     throw UnimplementedError('setVolume() has not been implemented.');
@@ -231,6 +241,8 @@ class DataSource {
     required this.sourceType,
     this.uri,
     this.adsUri,
+    this.isDvr,
+    this.dvrSeekPosition,
     this.formatHint,
     this.asset,
     this.package,
@@ -268,6 +280,8 @@ class DataSource {
   /// the original video.
   final String? uri;
   final String? adsUri;
+  final bool? isDvr;
+  final int? dvrSeekPosition;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.

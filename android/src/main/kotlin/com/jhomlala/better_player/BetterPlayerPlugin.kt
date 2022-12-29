@@ -240,6 +240,13 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 }
             }
 
+            PLAY_WHEN_READY_TRUE -> {
+                player.playWhenReady(true)
+            }
+            PLAY_WHEN_READY_FALSe -> {
+                player.playWhenReady(false)
+            }
+
             else -> result.notImplemented()
         }
     }
@@ -290,6 +297,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             val maxCacheFileSize = maxCacheFileSizeNumber.toLong()
             val uri = getParameter(dataSource, URI_PARAMETER, "")
             val adsUri = getParameter(dataSource, ADS_URI_PARAMETER, "")
+            val isDVR = getParameter(dataSource, IS_DVR, false)
+            val dvrSeekPosition = getParameter(dataSource, DVR_SEEK_POSITION, 0)
             val cacheKey = getParameter<String?>(dataSource, CACHE_KEY_PARAMETER, null)
             val formatHint = getParameter<String?>(dataSource, FORMAT_HINT_PARAMETER, null)
             val licenseUrl = getParameter<String?>(dataSource, LICENSE_URL_PARAMETER, null)
@@ -301,6 +310,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 key,
                 uri,
                 adsUri,
+                isDVR,
+                dvrSeekPosition,
                 null,
                 result,
                 headers,
@@ -530,6 +541,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val ASSET_PARAMETER = "asset"
         private const val PACKAGE_PARAMETER = "package"
         private const val URI_PARAMETER = "uri"
+        private const val IS_DVR = "is_dvr"
+        private const val DVR_SEEK_POSITION = "dvr_seek_position"
         private const val ADS_URI_PARAMETER = "ads_url"
         private const val FORMAT_HINT_PARAMETER = "formatHint"
         private const val TEXTURE_ID_PARAMETER = "textureId"
@@ -590,5 +603,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val CONTENT_DURATION = "contentDuration"
         private const val CONTENT_POSITION = "contentPosition"
         private const val START_NERD_STAT = "startNerdStat"
+        private const val PLAY_WHEN_READY_TRUE = "playWhenReadyTrue"
+        private const val PLAY_WHEN_READY_FALSe = "playWhenReadyFalse"
     }
 }

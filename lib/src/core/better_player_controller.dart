@@ -444,6 +444,8 @@ class BetterPlayerController {
         await videoPlayerController?.setNetworkDataSource(
           betterPlayerDataSource.url,
           adsUrl: betterPlayerDataSource.adsUrl,
+          isDvr: betterPlayerDataSource.isDVR,
+          dvrSeekPosition: betterPlayerDataSource.dvrSeekPosition,
           headers: _getHeaders(),
           useCache:
               _betterPlayerDataSource!.cacheConfiguration?.useCache ?? false,
@@ -958,7 +960,8 @@ class BetterPlayerController {
     final position = await videoPlayerController!.position;
     final wasPlayingBeforeChange = isPlaying()!;
     pause();
-    await setupDataSource(betterPlayerDataSource!.copyWith(url: url,adsUrl: adsUrl));
+    await setupDataSource(
+        betterPlayerDataSource!.copyWith(url: url, adsUrl: adsUrl));
     seekTo(position!);
     if (wasPlayingBeforeChange) {
       play();
@@ -1263,6 +1266,8 @@ class BetterPlayerController {
       sourceType: DataSourceType.network,
       uri: betterPlayerDataSource.url,
       adsUri: betterPlayerDataSource.adsUrl,
+      isDvr: betterPlayerDataSource.isDvr,
+      dvrSeekPosition: betterPlayerDataSource.dvrSeekPosition,
       useCache: true,
       headers: betterPlayerDataSource.headers,
       maxCacheSize: cacheConfig.maxCacheSize,

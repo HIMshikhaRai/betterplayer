@@ -20,22 +20,21 @@ final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
 class VideoPlayerValue {
   /// Constructs a video with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
-  VideoPlayerValue({
-    required this.duration,
-    this.size,
-    this.position = const Duration(),
-    this.absolutePosition,
-    this.buffered = const <DurationRange>[],
-    this.isPlaying = false,
-    this.isLooping = false,
-    this.isBuffering = false,
-    this.volume = 1.0,
-    this.speed = 1.0,
-    this.errorDescription,
-    this.isPip = false,
-    this.bitrate = 0,
-    this.nerdStatValue = ""
-  });
+  VideoPlayerValue(
+      {required this.duration,
+      this.size,
+      this.position = const Duration(),
+      this.absolutePosition,
+      this.buffered = const <DurationRange>[],
+      this.isPlaying = false,
+      this.isLooping = false,
+      this.isBuffering = false,
+      this.volume = 1.0,
+      this.speed = 1.0,
+      this.errorDescription,
+      this.isPip = false,
+      this.bitrate = 0,
+      this.nerdStatValue = ""});
 
   /// Returns an instance with a `null` [Duration].
   VideoPlayerValue.uninitialized() : this(duration: null);
@@ -117,38 +116,36 @@ class VideoPlayerValue {
 
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
-  VideoPlayerValue copyWith({
-    Duration? duration,
-    Size? size,
-    Duration? position,
-    DateTime? absolutePosition,
-    List<DurationRange>? buffered,
-    bool? isPlaying,
-    bool? isLooping,
-    bool? isBuffering,
-    double? volume,
-    String? errorDescription,
-    double? speed,
-    bool? isPip,
-    int? bitrate,
-    String? nerdStatValue
-  }) {
+  VideoPlayerValue copyWith(
+      {Duration? duration,
+      Size? size,
+      Duration? position,
+      DateTime? absolutePosition,
+      List<DurationRange>? buffered,
+      bool? isPlaying,
+      bool? isLooping,
+      bool? isBuffering,
+      double? volume,
+      String? errorDescription,
+      double? speed,
+      bool? isPip,
+      int? bitrate,
+      String? nerdStatValue}) {
     return VideoPlayerValue(
-      duration: duration ?? this.duration,
-      size: size ?? this.size,
-      position: position ?? this.position,
-      absolutePosition: absolutePosition ?? this.absolutePosition,
-      buffered: buffered ?? this.buffered,
-      isPlaying: isPlaying ?? this.isPlaying,
-      isLooping: isLooping ?? this.isLooping,
-      isBuffering: isBuffering ?? this.isBuffering,
-      volume: volume ?? this.volume,
-      speed: speed ?? this.speed,
-      errorDescription: errorDescription ?? this.errorDescription,
-      isPip: isPip ?? this.isPip,
-      bitrate: bitrate ?? this.bitrate,
-        nerdStatValue: nerdStatValue ?? this.nerdStatValue
-    );
+        duration: duration ?? this.duration,
+        size: size ?? this.size,
+        position: position ?? this.position,
+        absolutePosition: absolutePosition ?? this.absolutePosition,
+        buffered: buffered ?? this.buffered,
+        isPlaying: isPlaying ?? this.isPlaying,
+        isLooping: isLooping ?? this.isLooping,
+        isBuffering: isBuffering ?? this.isBuffering,
+        volume: volume ?? this.volume,
+        speed: speed ?? this.speed,
+        errorDescription: errorDescription ?? this.errorDescription,
+        isPip: isPip ?? this.isPip,
+        bitrate: bitrate ?? this.bitrate,
+        nerdStatValue: nerdStatValue ?? this.nerdStatValue);
   }
 
   @override
@@ -227,19 +224,22 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       switch (event.eventType) {
         case VideoEventType.initialized:
           value = value.copyWith(
-            duration: event.duration,
-            size: event.size,
-            bitrate: event.bitrate
-          );
+              duration: event.duration,
+              size: event.size,
+              bitrate: event.bitrate);
           _initializingCompleter.complete(null);
           _applyPlayPause();
           break;
         case VideoEventType.completed:
-          value = value.copyWith(isPlaying: false, position: value.duration, bitrate: event.bitrate);
+          value = value.copyWith(
+              isPlaying: false,
+              position: value.duration,
+              bitrate: event.bitrate);
           _timer?.cancel();
           break;
         case VideoEventType.bufferingUpdate:
-          value = value.copyWith(buffered: event.buffered, bitrate: event.bitrate);
+          value =
+              value.copyWith(buffered: event.buffered, bitrate: event.bitrate);
           break;
         case VideoEventType.bufferingStart:
           value = value.copyWith(isBuffering: true, bitrate: event.bitrate);
@@ -337,6 +337,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setNetworkDataSource(
     String dataSource, {
     String? adsUrl,
+    bool? isDVR,
+    int? dvrSeekPosition,
     VideoFormat? formatHint,
     Map<String, String?>? headers,
     bool useCache = false,
@@ -361,6 +363,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         sourceType: DataSourceType.network,
         uri: dataSource,
         adsUri: adsUrl,
+        isDVR: isDVR,
+        dvrSeekPosition:dvrSeekPosition,
         formatHint: formatHint,
         headers: headers,
         useCache: useCache,
@@ -466,6 +470,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   Future<void> startNerdStat() async {
     return await _videoPlayerPlatform.startNerdStat(_textureId);
+  }
+
+  Future<void> playWhenReadyTrue() async {
+    return await _videoPlayerPlatform.playWhenReadyTrue(_textureId);
+  }
+
+  Future<void> playWhenReadyFalse() async {
+    return await _videoPlayerPlatform.playWhenReadyFalse(_textureId);
   }
 
   Future<Duration?> contentDuration() async {

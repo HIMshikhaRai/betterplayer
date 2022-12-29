@@ -20,6 +20,9 @@ class BetterPlayerDataSource {
   ///Url of the video ads
   final String? adsUrl;
 
+  final bool? isDVR;
+  final int? dvrSeekPosition;
+
   ///Subtitles configuration
   final List<BetterPlayerSubtitlesSource>? subtitles;
 
@@ -79,10 +82,11 @@ class BetterPlayerDataSource {
   ///platform.
   final BetterPlayerBufferingConfiguration bufferingConfiguration;
 
-  BetterPlayerDataSource(
-      this.type,
+  BetterPlayerDataSource(this.type,
       this.url, {
         this.adsUrl,
+        this.isDVR,
+        this.dvrSeekPosition,
         this.bytes,
         this.subtitles,
         this.liveStream = false,
@@ -112,30 +116,33 @@ class BetterPlayerDataSource {
 
   ///Factory method to build network data source which uses url as data source
   ///Bytes parameter is not used in this data source.
-  factory BetterPlayerDataSource.network(
-      String url, {
-        String? adsUrl,
-        List<BetterPlayerSubtitlesSource>? subtitles,
-        bool? liveStream,
-        Map<String, String>? headers,
-        bool? useAsmsSubtitles,
-        bool? useAsmsTracks,
-        bool? useAsmsAudioTracks,
-        Map<String, String>? qualities,
-        BetterPlayerCacheConfiguration? cacheConfiguration,
-        BetterPlayerNotificationConfiguration notificationConfiguration =
-        const BetterPlayerNotificationConfiguration(showNotification: false),
-        Duration? overriddenDuration,
-        BetterPlayerVideoFormat? videoFormat,
-        BetterPlayerDrmConfiguration? drmConfiguration,
-        Widget? placeholder,
-        BetterPlayerBufferingConfiguration bufferingConfiguration =
-        const BetterPlayerBufferingConfiguration(),
-      }) {
+  factory BetterPlayerDataSource.network(String url, {
+    String? adsUrl,
+    bool? isDVR,
+    int? dvrSeekPosition,
+    List<BetterPlayerSubtitlesSource>? subtitles,
+    bool? liveStream,
+    Map<String, String>? headers,
+    bool? useAsmsSubtitles,
+    bool? useAsmsTracks,
+    bool? useAsmsAudioTracks,
+    Map<String, String>? qualities,
+    BetterPlayerCacheConfiguration? cacheConfiguration,
+    BetterPlayerNotificationConfiguration notificationConfiguration =
+    const BetterPlayerNotificationConfiguration(showNotification: false),
+    Duration? overriddenDuration,
+    BetterPlayerVideoFormat? videoFormat,
+    BetterPlayerDrmConfiguration? drmConfiguration,
+    Widget? placeholder,
+    BetterPlayerBufferingConfiguration bufferingConfiguration =
+    const BetterPlayerBufferingConfiguration(),
+  }) {
     return BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
       url,
       adsUrl: adsUrl,
+      isDVR: isDVR,
+      dvrSeekPosition: dvrSeekPosition,
       subtitles: subtitles,
       liveStream: liveStream,
       headers: headers,
@@ -155,48 +162,50 @@ class BetterPlayerDataSource {
 
   ///Factory method to build file data source which uses url as data source.
   ///Bytes parameter is not used in this data source.
-  factory BetterPlayerDataSource.file(
-      String url, {
-        String? adsUrl,
-        List<BetterPlayerSubtitlesSource>? subtitles,
-        bool? useAsmsSubtitles,
-        bool? useAsmsTracks,
-        Map<String, String>? qualities,
-        BetterPlayerCacheConfiguration? cacheConfiguration,
-        BetterPlayerNotificationConfiguration? notificationConfiguration,
-        Duration? overriddenDuration,
-        Widget? placeholder,
-      }) {
+  factory BetterPlayerDataSource.file(String url, {
+    String? adsUrl,
+    bool? isDVR,
+    int? dvrSeekPosition,
+    List<BetterPlayerSubtitlesSource>? subtitles,
+    bool? useAsmsSubtitles,
+    bool? useAsmsTracks,
+    Map<String, String>? qualities,
+    BetterPlayerCacheConfiguration? cacheConfiguration,
+    BetterPlayerNotificationConfiguration? notificationConfiguration,
+    Duration? overriddenDuration,
+    Widget? placeholder,
+  }) {
     return BetterPlayerDataSource(
-      BetterPlayerDataSourceType.file,
-      url,
-      adsUrl: adsUrl,
-      subtitles: subtitles,
-      useAsmsSubtitles: useAsmsSubtitles,
-      useAsmsTracks: useAsmsTracks,
-      resolutions: qualities,
-      cacheConfiguration: cacheConfiguration,
-      notificationConfiguration: notificationConfiguration =
-      const BetterPlayerNotificationConfiguration(showNotification: false),
-      overriddenDuration: overriddenDuration,
-      placeholder: placeholder,
+        BetterPlayerDataSourceType.file,
+        url,
+        adsUrl: adsUrl,
+        isDVR:isDVR,
+        dvrSeekPosition:dvrSeekPosition,
+        subtitles: subtitles,
+        useAsmsSubtitles: useAsmsSubtitles,
+        useAsmsTracks: useAsmsTracks,
+    resolutions: qualities,
+    cacheConfiguration: cacheConfiguration,
+        notificationConfiguration: notificationConfiguration =
+        const BetterPlayerNotificationConfiguration(showNotification: false),
+    overriddenDuration: overriddenDuration,
+    placeholder: placeholder,
     );
   }
 
   ///Factory method to build network data source which uses bytes as data source.
   ///Url parameter is not used in this data source.
-  factory BetterPlayerDataSource.memory(
-      List<int> bytes, {
-        String? videoExtension,
-        List<BetterPlayerSubtitlesSource>? subtitles,
-        bool? useAsmsSubtitles,
-        bool? useAsmsTracks,
-        Map<String, String>? qualities,
-        BetterPlayerCacheConfiguration? cacheConfiguration,
-        BetterPlayerNotificationConfiguration? notificationConfiguration,
-        Duration? overriddenDuration,
-        Widget? placeholder,
-      }) {
+  factory BetterPlayerDataSource.memory(List<int> bytes, {
+    String? videoExtension,
+    List<BetterPlayerSubtitlesSource>? subtitles,
+    bool? useAsmsSubtitles,
+    bool? useAsmsTracks,
+    Map<String, String>? qualities,
+    BetterPlayerCacheConfiguration? cacheConfiguration,
+    BetterPlayerNotificationConfiguration? notificationConfiguration,
+    Duration? overriddenDuration,
+    Widget? placeholder,
+  }) {
     return BetterPlayerDataSource(
       BetterPlayerDataSourceType.memory,
       "",
@@ -218,6 +227,8 @@ class BetterPlayerDataSource {
     BetterPlayerDataSourceType? type,
     String? url,
     String? adsUrl,
+    bool? isDVR,
+    int? dvrSeekPosition,
     List<int>? bytes,
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? liveStream,
@@ -241,6 +252,8 @@ class BetterPlayerDataSource {
       type ?? this.type,
       url ?? this.url,
       adsUrl: adsUrl ?? this.adsUrl,
+      isDVR: isDVR,
+      dvrSeekPosition: dvrSeekPosition,
       bytes: bytes ?? this.bytes,
       subtitles: subtitles ?? this.subtitles,
       liveStream: liveStream ?? this.liveStream,

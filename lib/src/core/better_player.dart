@@ -15,13 +15,15 @@ class BetterPlayer extends StatefulWidget {
   factory BetterPlayer.network(
     String url, {
       String? adsUrl,
+        bool? isDvr,
+        int? dvrSeekPosition,
     BetterPlayerConfiguration? betterPlayerConfiguration,
   }) =>
       BetterPlayer(
         controller: BetterPlayerController(
           betterPlayerConfiguration ?? const BetterPlayerConfiguration(),
           betterPlayerDataSource:
-              BetterPlayerDataSource(BetterPlayerDataSourceType.network, url,adsUrl: adsUrl),
+              BetterPlayerDataSource(BetterPlayerDataSourceType.network, url,adsUrl: adsUrl,isDvr:isDvr,dvrSeekPosition:dvrSeekPosition),
         ),
       );
 
