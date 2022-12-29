@@ -444,7 +444,7 @@ class BetterPlayerController {
         await videoPlayerController?.setNetworkDataSource(
           betterPlayerDataSource.url,
           adsUrl: betterPlayerDataSource.adsUrl,
-          isDvr: betterPlayerDataSource.isDVR,
+          isDvr: betterPlayerDataSource.isDvr,
           dvrSeekPosition: betterPlayerDataSource.dvrSeekPosition,
           headers: _getHeaders(),
           useCache:

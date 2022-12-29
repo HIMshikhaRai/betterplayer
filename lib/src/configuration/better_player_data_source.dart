@@ -20,7 +20,7 @@ class BetterPlayerDataSource {
   ///Url of the video ads
   final String? adsUrl;
 
-  final bool? isDVR;
+  final bool? isDvr;
   final int? dvrSeekPosition;
 
   ///Subtitles configuration
@@ -85,7 +85,7 @@ class BetterPlayerDataSource {
   BetterPlayerDataSource(this.type,
       this.url, {
         this.adsUrl,
-        this.isDVR,
+        this.isDvr,
         this.dvrSeekPosition,
         this.bytes,
         this.subtitles,
@@ -118,7 +118,7 @@ class BetterPlayerDataSource {
   ///Bytes parameter is not used in this data source.
   factory BetterPlayerDataSource.network(String url, {
     String? adsUrl,
-    bool? isDVR,
+    bool? isDvr,
     int? dvrSeekPosition,
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? liveStream,
@@ -141,7 +141,7 @@ class BetterPlayerDataSource {
       BetterPlayerDataSourceType.network,
       url,
       adsUrl: adsUrl,
-      isDVR: isDVR,
+      isDvr: isDvr,
       dvrSeekPosition: dvrSeekPosition,
       subtitles: subtitles,
       liveStream: liveStream,
@@ -164,7 +164,7 @@ class BetterPlayerDataSource {
   ///Bytes parameter is not used in this data source.
   factory BetterPlayerDataSource.file(String url, {
     String? adsUrl,
-    bool? isDVR,
+    bool? isDvr,
     int? dvrSeekPosition,
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? useAsmsSubtitles,
@@ -179,7 +179,7 @@ class BetterPlayerDataSource {
         BetterPlayerDataSourceType.file,
         url,
         adsUrl: adsUrl,
-        isDVR:isDVR,
+        isDvr:isDvr,
         dvrSeekPosition:dvrSeekPosition,
         subtitles: subtitles,
         useAsmsSubtitles: useAsmsSubtitles,
@@ -227,7 +227,7 @@ class BetterPlayerDataSource {
     BetterPlayerDataSourceType? type,
     String? url,
     String? adsUrl,
-    bool? isDVR,
+    bool? isDvr,
     int? dvrSeekPosition,
     List<int>? bytes,
     List<BetterPlayerSubtitlesSource>? subtitles,
@@ -252,7 +252,7 @@ class BetterPlayerDataSource {
       type ?? this.type,
       url ?? this.url,
       adsUrl: adsUrl ?? this.adsUrl,
-      isDVR: isDVR,
+      isDvr: isDvr,
       dvrSeekPosition: dvrSeekPosition,
       bytes: bytes ?? this.bytes,
       subtitles: subtitles ?? this.subtitles,

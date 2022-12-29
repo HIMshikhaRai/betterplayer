@@ -337,7 +337,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setNetworkDataSource(
     String dataSource, {
     String? adsUrl,
-    bool? isDVR,
+    bool? isDvr,
     int? dvrSeekPosition,
     VideoFormat? formatHint,
     Map<String, String?>? headers,
@@ -363,7 +363,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         sourceType: DataSourceType.network,
         uri: dataSource,
         adsUri: adsUrl,
-        isDVR: isDVR,
+        isDvr: isDvr,
         dvrSeekPosition:dvrSeekPosition,
         formatHint: formatHint,
         headers: headers,
