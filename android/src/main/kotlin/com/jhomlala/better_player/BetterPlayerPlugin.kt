@@ -278,6 +278,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 key,
                 "asset:///$assetLookupKey",
                 null,
+                false,
+                0L,
                 null,
                 result,
                 headers,
@@ -298,7 +300,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             val uri = getParameter(dataSource, URI_PARAMETER, "")
             val adsUri = getParameter(dataSource, ADS_URI_PARAMETER, "")
             val isDVR = getParameter(dataSource, IS_DVR, false)
-            val dvrSeekPosition = getParameter(dataSource, DVR_SEEK_POSITION, 0)
+            val dvrSeekPosition = getParameter(dataSource, DVR_SEEK_POSITION, 0L)
             val cacheKey = getParameter<String?>(dataSource, CACHE_KEY_PARAMETER, null)
             val formatHint = getParameter<String?>(dataSource, FORMAT_HINT_PARAMETER, null)
             val licenseUrl = getParameter<String?>(dataSource, LICENSE_URL_PARAMETER, null)
@@ -541,8 +543,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val ASSET_PARAMETER = "asset"
         private const val PACKAGE_PARAMETER = "package"
         private const val URI_PARAMETER = "uri"
-        private const val IS_DVR = "is_dvr"
-        private const val DVR_SEEK_POSITION = "dvr_seek_position"
+        private const val IS_DVR = "isDvr"
+        private const val DVR_SEEK_POSITION = "dvrSeekPositiion"
         private const val ADS_URI_PARAMETER = "ads_url"
         private const val FORMAT_HINT_PARAMETER = "formatHint"
         private const val TEXTURE_ID_PARAMETER = "textureId"

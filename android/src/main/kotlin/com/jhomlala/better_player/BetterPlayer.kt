@@ -103,6 +103,9 @@ internal class BetterPlayer(
     var startNerdStat = false
     var nerdStatHelper: NerdStatHelper? = null
     val adsMediaSourceFactory : MediaSourceFactory? = null
+    var mIsDvr:Boolean=false
+    var mIsDvrCheck:Boolean=false
+    var mDvrSeekPosition:Long=0L
     init {
         val loadBuilder = DefaultLoadControl.Builder()
         loadBuilder.setBufferDurationsMs(
@@ -198,8 +201,8 @@ internal class BetterPlayer(
         key: String?,
         dataSource: String?,
         adsLink: String?,
-        isDvr: Boolean?=false,
-        dvrSeekPosition: Long? =0
+        isDvr: Boolean=false,
+        dvrSeekPosition: Long=0L,
         formatHint: String?,
         result: MethodChannel.Result,
         headers: Map<String, String>?,
@@ -216,8 +219,8 @@ internal class BetterPlayer(
         isInitialized = false
         var adsUri: Uri? = null
         val uri: Uri = Uri.parse(dataSource)
-        val isDvr:Boolean=isDvr
-        val dvrSeekPosition:Long?=dvrSeekPosition
+        var isDvr:Boolean=isDvr
+        var dvrSeekPosition:Long=dvrSeekPosition
         if (adsLink != null && !adsLink.isEmpty()) {
             adsUri = Uri.parse(adsLink)
         }
@@ -284,7 +287,8 @@ internal class BetterPlayer(
         } else {
             dataSourceFactory = DefaultDataSourceFactory(context, userAgent)
         }
-        buildMediaSource(uri, adsUri,isDvr,dvrSeekPosition dataSourceFactory, formatHint, cacheKey, context)
+        Log.d("PlayerDVR", "PlayerURL" + uri)
+        buildMediaSource(uri, adsUri,isDvr,dvrSeekPosition, dataSourceFactory, formatHint, cacheKey, context)
 //        if (overriddenDuration != 0L) {
 //            val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
 //            exoPlayer!!.setMediaSource(clippingMediaSource)
@@ -293,8 +297,8 @@ internal class BetterPlayer(
 //        }
 
 
-//        exoPlayer?.prepare()
-//        exoPlayer?.playWhenReady = true
+        exoPlayer?.prepare()
+        exoPlayer?.playWhenReady = true
         result.success(null)
     }
 
@@ -534,13 +538,15 @@ internal class BetterPlayer(
 
     private fun buildMediaSource(
         uri: Uri,adsUri: Uri?,
-         isDvr:Boolean,
-         dvrSeekPosition:Long?,
+         isDvr: Boolean=false,
+         dvrSeekPosition: Long=0L,
         mediaDataSourceFactory: DataSource.Factory,
         formatHint: String?,
         cacheKey: String?,
         context: Context
     ) {
+        mIsDvr = isDvr
+        mDvrSeekPosition = dvrSeekPosition
 //        val type: Int
         @C.ContentType val type: Int = Util.inferContentType(uri, null)
 
@@ -602,18 +608,9 @@ internal class BetterPlayer(
         }
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.setMediaItem(mediaItem)
+        exoPlayer?.prepare()
+        exoPlayer?.playWhenReady =true
 
-        if (isDvr){
-            exoPlayer?.playWhenReady =false
-            exoPlayer?.prepare()
-            exoPlayer?.seekTo(dvrSeekPosition)
-            exoPlayer?.playWhenReady =true
-            exoPlayer?.playWhenPrepared();
-        }else{
-            exoPlayer?.prepare()
-            exoPlayer?.playWhenReady =true
-        }
-//        exoPlayer?.playWhenReady = true
     }
 
     private fun buildRtmp(): DataSource.Factory{
@@ -649,7 +646,20 @@ internal class BetterPlayer(
                             if (!isInitialized) {
                                 isInitialized = true
                                 sendInitialized()
+                            Log.d("PlayerDVR", "DVRRRRRRRR checckkkkkkkk" + mIsDvrCheck.toString())
                             }
+                        /*Handler().postDelayed({
+                            if (mIsDvr) {
+                                exoPlayer?.playWhenReady = false
+                                exoPlayer?.seekTo(mDvrSeekPosition)
+                                exoPlayer?.playWhenReady = true
+                                Log.d("PlayerDVR", "SEEEEEk" + mDvrSeekPosition.toString())
+                                mIsDvr = false;
+                            }
+                            //doSomethingHere()
+                        }, 2000)*/
+
+
                         val event: MutableMap<String, Any> = HashMap()
                         event["event"] = "bufferingEnd"
                         eventSink.success(event)
