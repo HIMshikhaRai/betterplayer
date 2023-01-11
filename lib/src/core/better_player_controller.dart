@@ -654,13 +654,13 @@ class BetterPlayerController {
     if (videoPlayerController?.value.duration == null) {
       throw StateError("The video has not been initialized yet.");
     }
+    final Duration? currentDuration = await videoPlayerController!.contentDuration();
 
-    await videoPlayerController!.seekTo(moment);
+    await videoPlayerController!.seekTo(moment, currentDuration: currentDuration);
 
     _postEvent(BetterPlayerEvent(BetterPlayerEventType.seekTo,
         parameters: <String, dynamic>{_durationParameter: moment}));
 
-    final Duration? currentDuration = videoPlayerController!.value.duration;
     if (currentDuration == null) {
       return;
     }
